@@ -13,6 +13,7 @@ public class CqlBuilderLookup {
   private Set<Lookup> functions;
   private Set<Lookup> fluentFunctions;
 
+  @Data
   @Builder
   public static class Lookup {
     private String name;
