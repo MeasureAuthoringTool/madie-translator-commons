@@ -24,6 +24,13 @@
 		<gov.cms.madie.models.version>0.6.49-SNAPSHOT</gov.cms.madie.models.version>
 		<com.jayway.jsonpath.version>2.9.0</com.jayway.jsonpath.version>
 	</properties>
+	<distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>MeasureAuthoringTool madie translator commons Package</name>
+            <url>https://maven.pkg.github.com/measureauthoringtool/madie-translator-commons</url>
+        </repository>
+    </distributionManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
