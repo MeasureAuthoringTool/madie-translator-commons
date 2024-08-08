@@ -130,7 +130,9 @@ public class CQLTools {
 
     TranslationResource translationResource =
         TranslationResource.getInstance(
-            usingProperties.getLibraryType() == "FHIR"); // <-- BADDDDD!!!! Defaults to fhir
+            usingProperties.getLibraryType() == "FHIR"
+                || usingProperties.getLibraryType()
+                    == "QICore"); // <-- BADDDDD!!!! Defaults to fhir
 
     CqlPreprocessorVisitor preprocessor =
         new CqlPreprocessorVisitor(
