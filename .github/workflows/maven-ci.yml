@@ -20,7 +20,9 @@ jobs:
           servers: '[{"id": "github", "username": "madieUser", "password": "${GITHUB_TOKEN_REF}"}]'
           githubServer: false
       - name: Build with Maven
-        run: mvn --batch-mode --update-snapshots -s settings.xml package
+        run: mvn clean install --file pom.xml
+        env:
+          GITHUB_TOKEN_REF: ${{ secrets.GH_PAT_FOR_ACTIONS_TOKEN }}
 
   publish-snapshot:
     needs: build
