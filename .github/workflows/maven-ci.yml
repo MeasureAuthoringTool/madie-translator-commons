@@ -21,8 +21,6 @@ jobs:
           githubServer: false
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots -s settings.xml package
-        env:
-          GITHUB_TOKEN_REF: ${{ secrets.GH_PAT_FOR_ACTIONS_TOKEN }}
 
   publish-snapshot:
     needs: build
