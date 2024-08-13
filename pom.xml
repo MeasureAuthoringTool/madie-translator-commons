@@ -21,7 +21,7 @@
 		<spring.test.version>6.1.11</spring.test.version>
 		<checkstyle.version>3.4.0</checkstyle.version>
 		<checkstyle.file>madie-checkstyle.xml</checkstyle.file>
-		<gov.cms.madie.models.version>0.6.49-SNAPSHOT</gov.cms.madie.models.version>
+		<gov.cms.madie.models.version>0.6.56-SNAPSHOT</gov.cms.madie.models.version>
 		<com.jayway.jsonpath.version>2.9.0</com.jayway.jsonpath.version>
 	</properties>
 	<distributionManagement>
