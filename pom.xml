@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gov.cms.madie</groupId>
 	<artifactId>madie-translator-commons</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
@@ -12,10 +12,10 @@
 		<maven.compiler.target>17</maven.compiler.target>
 		<mockito.version>5.12.0</mockito.version>
 		<slf4j.version>2.0.13</slf4j.version>
-		<cqframework.version>3.3.2</cqframework.version>
+		<cqframework.version>3.14.0</cqframework.version>
 		<spotify.fmt.version>2.21.1</spotify.fmt.version>
 		<lombok.version>1.18.24</lombok.version>
-		<madie.rest.commons.version>0.0.4-SNAPSHOT</madie.rest.commons.version>
+		<madie.rest.commons.version>0.0.7-SNAPSHOT</madie.rest.commons.version>
 		<hamcrest.version>3.0-rc1</hamcrest.version>
 		<jaxb.api.version>2.3.1</jaxb.api.version>
 		<spring.test.version>6.1.11</spring.test.version>
