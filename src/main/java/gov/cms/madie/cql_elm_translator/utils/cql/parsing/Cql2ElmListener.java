@@ -357,8 +357,9 @@ public class Cql2ElmListener extends cqlBaseListener {
     String identifier = parseString(ctx.identifier().getText());
     this.currentContext = libraryIdentifier + identifier;
     graph.addNode(currentContext);
+    libraryAccessor = null;
     if (shouldResolve(identifier)) { // MAT-7450
-      resolve(identifier, getCurrentLibraryContext());
+      resolve(identifier, this.library);
     }
   }
 
