@@ -22,10 +22,10 @@ import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.commons.collections4.CollectionUtils;
-import org.cqframework.cql.cql2elm.CqlCompilerOptions;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.model.CompiledLibrary;
-import org.cqframework.cql.cql2elm.preprocessor.CqlPreprocessorVisitor;
+import org.cqframework.cql.cql2elm.preprocessor.CqlPreprocessorElmCommonVisitor;
+import org.cqframework.cql.elm.IdObjectFactory;
 import org.cqframework.cql.gen.cqlBaseListener;
 import org.cqframework.cql.gen.cqlLexer;
 import org.cqframework.cql.gen.cqlParser;
@@ -689,14 +689,10 @@ public class Cql2ElmListener extends cqlBaseListener {
     TranslationResource translationResource =
         TranslationResource.getInstance(true); // <-- BADDDDD!!!! Defaults to fhir
 
-    // Add CqlCompilerOptions from LibraryManager to prevent NPE while walking through CQL
-    LibraryBuilder libraryBuilder = new LibraryBuilder(translationResource.getLibraryManager());
-    // MAT-7300: change signature level to overloads
-    CqlCompilerOptions options = translationResource.getLibraryManager().getCqlCompilerOptions();
-    options.setSignatureLevel(LibraryBuilder.SignatureLevel.Overloads);
-    libraryBuilder.setCompilerOptions(options);
-    CqlPreprocessorVisitor preprocessor = new CqlPreprocessorVisitor(libraryBuilder, tokens);
-
+    CqlPreprocessorElmCommonVisitor preprocessor =
+        new CqlPreprocessorElmCommonVisitor(
+            new LibraryBuilder(translationResource.getLibraryManager(), new IdObjectFactory()),
+            tokens);
     preprocessor.visit(tree);
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(listener, tree);
