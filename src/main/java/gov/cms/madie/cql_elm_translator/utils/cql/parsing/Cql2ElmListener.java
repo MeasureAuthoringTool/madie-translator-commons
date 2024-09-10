@@ -18,7 +18,6 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.commons.collections4.CollectionUtils;
@@ -59,6 +58,7 @@ import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.CQLParameter;
 import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.CQLValueSet;
 import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.DefinitionContent;
 import lombok.Getter;
+import lombok.NonNull;
 
 @Slf4j
 public class Cql2ElmListener extends cqlBaseListener {
@@ -228,7 +228,7 @@ public class Cql2ElmListener extends cqlBaseListener {
   }
 
   @Override
-  public void enterQualifiedIdentifier(@NotNull cqlParser.QualifiedIdentifierContext ctx) {
+  public void enterQualifiedIdentifier(@NonNull cqlParser.QualifiedIdentifierContext ctx) {
     String identifier = parseString(ctx.identifier().getText());
     String qualifier = "";
 
@@ -257,14 +257,14 @@ public class Cql2ElmListener extends cqlBaseListener {
   }
 
   @Override
-  public void enterFunction(@NotNull cqlParser.FunctionContext ctx) {
+  public void enterFunction(@NonNull cqlParser.FunctionContext ctx) {
     String identifier = parseString(ctx.referentialIdentifier().getText());
     resolve(identifier, getCurrentLibraryContext());
     libraryAccessor = null;
   }
 
   @Override
-  public void enterExpressionDefinition(@NotNull cqlParser.ExpressionDefinitionContext ctx) {
+  public void enterExpressionDefinition(@NonNull cqlParser.ExpressionDefinitionContext ctx) {
     String identifier = parseString(ctx.identifier().getText());
     this.currentContext = libraryIdentifier + identifier;
     String content =
@@ -277,8 +277,9 @@ public class Cql2ElmListener extends cqlBaseListener {
   }
 
   @Override
-  public void enterFunctionDefinition(@NotNull cqlParser.FunctionDefinitionContext ctx) {
-    String identifier = parseString(ctx.identifierOrFunctionIdentifier().getText());
+  public void enterFunctionDefinition(@NonNull cqlParser.FunctionDefinitionContext ctx) {
+    String functionDef = ctx.identifierOrFunctionIdentifier().getText();
+    String identifier = parseString(functionDef);
     this.currentContext = libraryIdentifier + identifier;
     for (cqlParser.OperandDefinitionContext operand : ctx.operandDefinition()) {
       namespace.push(operand.referentialIdentifier().getText());
@@ -299,7 +300,7 @@ public class Cql2ElmListener extends cqlBaseListener {
   }
 
   @Override
-  public void exitFunctionDefinition(@NotNull cqlParser.FunctionDefinitionContext ctx) {
+  public void exitFunctionDefinition(@NonNull cqlParser.FunctionDefinitionContext ctx) {
     for (cqlParser.OperandDefinitionContext operand : ctx.operandDefinition()) {
       namespace.pop();
     }
@@ -345,14 +346,16 @@ public class Cql2ElmListener extends cqlBaseListener {
         || context.stop.getStopIndex() < 0) {
       return context.getText();
     }
-    return context
-        .start
-        .getInputStream()
-        .getText(Interval.of(context.start.getStartIndex(), context.stop.getStopIndex()));
+    String result =
+        context
+            .start
+            .getInputStream()
+            .getText(Interval.of(context.start.getStartIndex(), context.stop.getStopIndex()));
+    return result;
   }
 
   @Override
-  public void enterParameterDefinition(@NotNull cqlParser.ParameterDefinitionContext ctx) {
+  public void enterParameterDefinition(@NonNull cqlParser.ParameterDefinitionContext ctx) {
     String identifier = parseString(ctx.identifier().getText());
     this.currentContext = libraryIdentifier + identifier;
     graph.addNode(currentContext);
@@ -363,7 +366,7 @@ public class Cql2ElmListener extends cqlBaseListener {
   }
 
   @Override
-  public void enterRetrieve(@NotNull cqlParser.RetrieveContext ctx) {
+  public void enterRetrieve(@NonNull cqlParser.RetrieveContext ctx) {
 
     // we only care about entering a retrieve if it has a terminology
     if (ctx.terminology() == null || ctx.codePath() != null) {
