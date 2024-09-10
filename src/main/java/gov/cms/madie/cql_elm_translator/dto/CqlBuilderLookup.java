@@ -9,7 +9,8 @@ import java.util.Set;
 @Builder
 public class CqlBuilderLookup {
   private Set<Lookup> parameters;
-  private Set<Lookup> definitions;
+  private Set<Lookup> allDefinitions;
+  private Set<Lookup> localDefinitions;
   private Set<Lookup> functions;
   private Set<Lookup> fluentFunctions;
 
