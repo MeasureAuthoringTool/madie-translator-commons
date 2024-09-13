@@ -395,13 +395,15 @@ public class CQLTools {
     String libraryVersion = this.library.getIdentifier().getVersion();
     this.allNamesToReturnTypeMap.put(libraryName + "-" + libraryVersion, new HashMap<>());
 
-    for (ExpressionDef expression : statements.getDef()) {
-      this.allNamesToReturnTypeMap
-          .get(libraryName + "-" + libraryVersion)
-          .put(expression.getName(), expression.getResultType().toString());
-      this.nameToReturnTypeMap.put(expression.getName(), expression.getResultType().toString());
-      this.expressionToReturnTypeMap.put(
-          expression.getName(), expression.getResultType().toString());
+    if (statements != null) {
+      for (ExpressionDef expression : statements.getDef()) {
+        this.allNamesToReturnTypeMap
+            .get(libraryName + "-" + libraryVersion)
+            .put(expression.getName(), expression.getResultType().toString());
+        this.nameToReturnTypeMap.put(expression.getName(), expression.getResultType().toString());
+        this.expressionToReturnTypeMap.put(
+            expression.getName(), expression.getResultType().toString());
+      }
     }
 
     if (parameters != null) {
