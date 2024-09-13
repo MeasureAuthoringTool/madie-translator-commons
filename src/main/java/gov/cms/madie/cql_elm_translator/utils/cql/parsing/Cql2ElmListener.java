@@ -648,7 +648,7 @@ public class Cql2ElmListener extends cqlBaseListener {
     } else if (element instanceof ExpressionDef) {
       definitions.add(formattedIdentifier);
       graph.addEdge(currentContext, formattedIdentifier);
-    } else {
+    } else if (library.getLibrary().getStatements() != null) {
       final String finalFormattedIdentifier = formattedIdentifier;
       library
           .getLibrary()
