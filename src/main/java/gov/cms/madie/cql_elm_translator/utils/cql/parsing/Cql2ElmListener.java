@@ -385,6 +385,7 @@ public class Cql2ElmListener extends cqlBaseListener {
               ctx.terminology().qualifiedIdentifierExpression().referentialIdentifier().getText());
     } else {
       identifier = parseString(ctx.terminology().getText());
+      resolve(ctx.terminology().getText(), getCurrentLibraryContext());
     }
 
     String formattedIdentifier = formatIdentifier(identifier);
