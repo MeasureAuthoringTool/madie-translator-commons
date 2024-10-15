@@ -142,19 +142,6 @@ public class TranslationResource {
       CqlCompilerOptions.Options[] options = optionsList.toArray(new CqlCompilerOptions.Options[0]);
 
       libraryManager.getLibrarySourceLoader().registerProvider(new MadieLibrarySourceProvider());
-      // this was the old code for version 2.11.0 of cqframework.. the constructor changed
-      // drastically, so want to save this until we get past any regressions problems
-      /*public static CqlTranslator fromStream(NamespaceInfo namespaceInfo,
-       * VersionedIdentifier sourceInfo, InputStream cqlStream,
-      LibraryManager libraryManager) throws IOException {*/
-      //      return CqlTranslator.fromStream(
-      //          cqlStream,
-      //          modelManager,
-      //          libraryManager,
-      //          ucumService,
-      //          CqlCompilerException.ErrorSeverity.Error,
-      //          signatureLevel,
-      //          options);
 
       NamespaceInfo nsInfo = null;
 
