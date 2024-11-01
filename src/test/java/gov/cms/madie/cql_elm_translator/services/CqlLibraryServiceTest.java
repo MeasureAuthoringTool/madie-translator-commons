@@ -129,7 +129,7 @@ class CqlLibraryServiceTest {
             () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
     assertThat(
         ex.getMessage(),
-        is(equalTo("Library resource FHIRHelpers version '1.0.000' is not found")));
+        is(equalTo("Library resource FHIRHelpers version '1.0.000' is not found.")));
   }
 
   @Test

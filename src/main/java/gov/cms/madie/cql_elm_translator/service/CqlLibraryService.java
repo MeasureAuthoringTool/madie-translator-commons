@@ -94,7 +94,7 @@ public class CqlLibraryService {
       return null;
     } catch (HttpClientErrorException ex) {
       throw new ResourceNotFoundException(
-          "Library resource " + name + " version '" + version + "' is not found");
+          "Library resource " + name + " version '" + version + "' is not found.");
     }
   }
 
