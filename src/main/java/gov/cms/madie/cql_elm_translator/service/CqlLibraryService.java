@@ -1,5 +1,6 @@
 package gov.cms.madie.cql_elm_translator.service;
 
+import gov.cms.madie.cql_elm_translator.exceptions.ResourceNotFoundException;
 import gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.MadieLibrarySourceProvider;
 import gov.cms.mat.cql.CqlTextParser;
 import gov.cms.mat.cql.elements.UsingProperties;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
@@ -45,49 +47,55 @@ public class CqlLibraryService {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", accessToken);
 
-    ResponseEntity<String> responseEntity =
-        restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    try {
+      ResponseEntity<String> responseEntity =
+          restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+      if (responseEntity.getStatusCode().is2xxSuccessful()) {
+        if (responseEntity.hasBody()) {
+          log.debug("Retrieved a valid cqlPayload");
+          List<String> supportedLibraries =
+              Arrays.stream(
+                      MadieLibrarySourceProvider.getSupportedLibrariesMap()
+                          .get(
+                              MadieLibrarySourceProvider.getUsingProperties()
+                                  .getLibraryType()
+                                  .toUpperCase()))
+                  .toList();
 
-    if (responseEntity.getStatusCode().is2xxSuccessful()) {
-      if (responseEntity.hasBody()) {
-        log.debug("Retrieved a valid cqlPayload");
-        List<String> supportedLibraries =
-            Arrays.stream(
-                    MadieLibrarySourceProvider.getSupportedLibrariesMap()
-                        .get(
-                            MadieLibrarySourceProvider.getUsingProperties()
-                                .getLibraryType()
-                                .toUpperCase()))
-                .toList();
+          UsingProperties libraryUsing = new CqlTextParser(responseEntity.getBody()).getUsing();
+          if (libraryUsing
+                  .getLine()
+                  .equals(MadieLibrarySourceProvider.getUsingProperties().getLine())
+              || supportedLibraries.contains(libraryUsing.getLibraryType())) {
+            return responseEntity.getBody();
+          }
+          log.error("Library model and version does not match the Measure model and version");
+          throw new CqlIncludeException(
+              String.format(
+                  "Library model and version does not match the Measure model and version for"
+                      + " name: %s, version: %s",
+                  name, version),
+              null,
+              name,
+              version);
 
-        UsingProperties libraryUsing = new CqlTextParser(responseEntity.getBody()).getUsing();
-        if (libraryUsing.getLine().equals(MadieLibrarySourceProvider.getUsingProperties().getLine())
-            || supportedLibraries.contains(libraryUsing.getLibraryType())) {
-          return responseEntity.getBody();
+        } else {
+          log.error("Cannot find Cql payload in the response");
+          return null;
         }
-        log.error("Library model and version does not match the Measure model and version");
-        throw new CqlIncludeException(
-            String.format(
-                "Library model and version does not match the Measure model and version for"
-                    + " name: %s, version: %s",
-                name, version),
-            null,
+      } else if (responseEntity.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+        log.error("Cannot find a Cql Library with name: {}, version: {}", name, version);
+      } else if (responseEntity.getStatusCode().equals(HttpStatus.CONFLICT)) {
+        log.error(
+            "Multiple libraries found with name: {}, version: {}, but only one was expected",
             name,
             version);
-
-      } else {
-        log.error("Cannot find Cql payload in the response");
-        return null;
       }
-    } else if (responseEntity.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-      log.error("Cannot find a Cql Library with name: {}, version: {}", name, version);
-    } else if (responseEntity.getStatusCode().equals(HttpStatus.CONFLICT)) {
-      log.error(
-          "Multiple libraries found with name: {}, version: {}, but only one was expected",
-          name,
-          version);
+      return null;
+    } catch (HttpClientErrorException ex) {
+      throw new ResourceNotFoundException(
+          "Library resource " + name + " version '" + version + "' is not found");
     }
-    return null;
   }
 
   private URI buildMadieLibraryServiceUri(String name, String version) {

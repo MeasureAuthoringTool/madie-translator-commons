@@ -1,5 +1,6 @@
 package gov.cms.madie.cql_elm_translator.services;
 
+import gov.cms.madie.cql_elm_translator.exceptions.ResourceNotFoundException;
 import gov.cms.mat.cql.elements.UsingProperties;
 import gov.cms.madie.cql_elm_translator.service.CqlLibraryService;
 import gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.MadieLibrarySourceProvider;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -23,6 +25,7 @@ import java.net.URISyntaxException;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -39,7 +42,7 @@ class CqlLibraryServiceTest {
 
   private URI libraryUri;
 
-  private final String cqlLibraryName = "cqlLibraryName";
+  private final String cqlLibraryName = "FHIRHelpers";
 
   private final String cqlLibraryVersion = "1.0.000";
 
@@ -113,6 +116,20 @@ class CqlLibraryServiceTest {
     String responseBody =
         cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
     assertNull(responseBody);
+  }
+
+  @Test
+  void getLibraryCqlWhenLibraryNotFound() {
+    doThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND, "not found", null, null))
+        .when(restTemplate)
+        .exchange(libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class);
+    Exception ex =
+        assertThrows(
+            ResourceNotFoundException.class,
+            () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+    assertThat(
+        ex.getMessage(),
+        is(equalTo("Library resource FHIRHelpers version '1.0.000' is not found")));
   }
 
   @Test
