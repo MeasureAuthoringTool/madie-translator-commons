@@ -1,6 +1,6 @@
 package gov.cms.madie.cql_elm_translator.service;
 
-import gov.cms.madie.cql_elm_translator.exceptions.ResourceNotFoundException;
+import gov.cms.madie.cql_elm_translator.exceptions.LibraryResourceLoaderException;
 import gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.MadieLibrarySourceProvider;
 import gov.cms.mat.cql.CqlTextParser;
 import gov.cms.mat.cql.elements.UsingProperties;
@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -83,18 +82,20 @@ public class CqlLibraryService {
           log.error("Cannot find Cql payload in the response");
           return null;
         }
-      } else if (responseEntity.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-        log.error("Cannot find a Cql Library with name: {}, version: {}", name, version);
-      } else if (responseEntity.getStatusCode().equals(HttpStatus.CONFLICT)) {
-        log.error(
-            "Multiple libraries found with name: {}, version: {}, but only one was expected",
-            name,
-            version);
       }
       return null;
-    } catch (HttpClientErrorException ex) {
-      throw new ResourceNotFoundException(
-          "Library resource " + name + " version '" + version + "' is not found.");
+    } catch (HttpClientErrorException.NotFound ex) {
+      String message =
+          String.format("Library resource %s version '%s' is not found.", name, version);
+      log.error(message);
+      throw new LibraryResourceLoaderException(message);
+    } catch (HttpClientErrorException.Conflict ex) {
+      String message =
+          String.format(
+              "Multiple libraries found with name: %s, version: %s, but only one was expected.",
+              name, version);
+      log.error(message);
+      throw new LibraryResourceLoaderException(message);
     }
   }
 
