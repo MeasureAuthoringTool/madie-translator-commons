@@ -49,41 +49,36 @@ public class CqlLibraryService {
     try {
       ResponseEntity<String> responseEntity =
           restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
-      if (responseEntity.getStatusCode().is2xxSuccessful()) {
-        if (responseEntity.hasBody()) {
-          log.debug("Retrieved a valid cqlPayload");
-          List<String> supportedLibraries =
-              Arrays.stream(
-                      MadieLibrarySourceProvider.getSupportedLibrariesMap()
-                          .get(
-                              MadieLibrarySourceProvider.getUsingProperties()
-                                  .getLibraryType()
-                                  .toUpperCase()))
-                  .toList();
+      if (responseEntity.hasBody()) {
+        log.debug("Retrieved a valid cqlPayload");
+        List<String> supportedLibraries =
+            Arrays.stream(
+                    MadieLibrarySourceProvider.getSupportedLibrariesMap()
+                        .get(
+                            MadieLibrarySourceProvider.getUsingProperties()
+                                .getLibraryType()
+                                .toUpperCase()))
+                .toList();
 
-          UsingProperties libraryUsing = new CqlTextParser(responseEntity.getBody()).getUsing();
-          if (libraryUsing
-                  .getLine()
-                  .equals(MadieLibrarySourceProvider.getUsingProperties().getLine())
-              || supportedLibraries.contains(libraryUsing.getLibraryType())) {
-            return responseEntity.getBody();
-          }
-          log.error("Library model and version does not match the Measure model and version");
-          throw new CqlIncludeException(
-              String.format(
-                  "Library model and version does not match the Measure model and version for"
-                      + " name: %s, version: %s",
-                  name, version),
-              null,
-              name,
-              version);
-
-        } else {
-          log.error("Cannot find Cql payload in the response");
-          return null;
+        UsingProperties libraryUsing = new CqlTextParser(responseEntity.getBody()).getUsing();
+        if (libraryUsing.getLine().equals(MadieLibrarySourceProvider.getUsingProperties().getLine())
+            || supportedLibraries.contains(libraryUsing.getLibraryType())) {
+          return responseEntity.getBody();
         }
+        log.error("Library model and version does not match the Measure model and version");
+        throw new CqlIncludeException(
+            String.format(
+                "Library model and version does not match the Measure model and version for"
+                    + " name: %s, version: %s",
+                name, version),
+            null,
+            name,
+            version);
+
+      } else {
+        log.error("Cannot find Cql payload in the response");
+        return null;
       }
-      return null;
     } catch (HttpClientErrorException.NotFound ex) {
       String message =
           String.format("Library resource %s version '%s' is not found.", name, version);
