@@ -1,5 +1,6 @@
 package gov.cms.madie.cql_elm_translator.services;
 
+import gov.cms.madie.cql_elm_translator.exceptions.LibraryResourceLoaderException;
 import gov.cms.mat.cql.elements.UsingProperties;
 import gov.cms.madie.cql_elm_translator.service.CqlLibraryService;
 import gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.MadieLibrarySourceProvider;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -23,10 +25,10 @@ import java.net.URISyntaxException;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CqlLibraryServiceTest {
@@ -39,7 +41,7 @@ class CqlLibraryServiceTest {
 
   private URI libraryUri;
 
-  private final String cqlLibraryName = "cqlLibraryName";
+  private final String cqlLibraryName = "FHIRHelpers";
 
   private final String cqlLibraryVersion = "1.0.000";
 
@@ -106,23 +108,35 @@ class CqlLibraryServiceTest {
   }
 
   @Test
-  void getLibraryCqlReturnsNullWhenNotFound() {
-    when(restTemplate.exchange(
-            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
-        .thenReturn(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
-    String responseBody =
-        cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
-    assertNull(responseBody);
+  void getLibraryCqlWhenLibraryNotFound() {
+    HttpClientErrorException response = mock(HttpClientErrorException.NotFound.class);
+    doThrow(response)
+        .when(restTemplate)
+        .exchange(libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class);
+    Exception ex =
+        assertThrows(
+            LibraryResourceLoaderException.class,
+            () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+    assertThat(
+        ex.getMessage(),
+        is(equalTo("Library resource FHIRHelpers version '1.0.000' is not found.")));
   }
 
   @Test
   void getLibraryCqlReturnsNullWhenConflict() {
-    when(restTemplate.exchange(
-            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
-        .thenReturn(new ResponseEntity<>(null, HttpStatus.CONFLICT));
-    String responseBody =
-        cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
-    assertNull(responseBody);
+    HttpClientErrorException response = mock(HttpClientErrorException.Conflict.class);
+    doThrow(response)
+        .when(restTemplate)
+        .exchange(libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class);
+    Exception ex =
+        assertThrows(
+            LibraryResourceLoaderException.class,
+            () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+    assertThat(
+        ex.getMessage(),
+        is(
+            equalTo(
+                "Multiple libraries found with name: FHIRHelpers, version: 1.0.000, but only one was expected.")));
   }
 
   @Test
