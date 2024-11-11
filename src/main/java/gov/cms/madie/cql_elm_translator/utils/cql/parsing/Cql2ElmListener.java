@@ -24,6 +24,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.model.CompiledLibrary;
+import org.cqframework.cql.cql2elm.model.ResolvedIdentifierContext;
 import org.cqframework.cql.cql2elm.preprocessor.CqlPreprocessorElmCommonVisitor;
 import org.cqframework.cql.elm.IdObjectFactory;
 import org.cqframework.cql.gen.cqlBaseListener;
@@ -43,7 +44,6 @@ import org.cqframework.cql.gen.cqlParser.WithClauseContext;
 import org.cqframework.cql.gen.cqlParser.WithoutClauseContext;
 import org.hl7.elm.r1.CodeDef;
 import org.hl7.elm.r1.CodeSystemDef;
-import org.hl7.elm.r1.Element;
 import org.hl7.elm.r1.ExpressionDef;
 import org.hl7.elm.r1.IncludeDef;
 import org.hl7.elm.r1.ParameterDef;
@@ -160,15 +160,21 @@ public class Cql2ElmListener extends cqlBaseListener {
   public void enterCodesystemDefinition(cqlParser.CodesystemDefinitionContext ctx) {
     String identifier = parseString(ctx.identifier().getText());
 
-    if (library.resolve(identifier) instanceof CodeSystemDef csDef) {
-      CQLCodeSystem codeSystem = new CQLCodeSystem();
-      codeSystem.setId(csDef.getId());
-      codeSystem.setOID(csDef.getId());
-      // MAT-6935 extracting the version from the url
-      codeSystem.setCodeSystemVersion(getParsedVersion(csDef.getVersion()));
+    library
+        .resolve(identifier)
+        .getExactMatchElement()
+        .ifPresent(
+            element -> {
+              if (element instanceof CodeSystemDef csDef) {
+                CQLCodeSystem codeSystem = new CQLCodeSystem();
+                codeSystem.setId(csDef.getId());
+                codeSystem.setOID(csDef.getId());
+                // MAT-6935 extracting the version from the url
+                codeSystem.setCodeSystemVersion(getParsedVersion(csDef.getVersion()));
 
-      codeSystemMap.putIfAbsent(identifier, codeSystem);
-    }
+                codeSystemMap.putIfAbsent(identifier, codeSystem);
+              }
+            });
   }
 
   private String getParsedVersion(String version) {
@@ -391,12 +397,11 @@ public class Cql2ElmListener extends cqlBaseListener {
     String formattedIdentifier = formatIdentifier(identifier);
 
     // we need to resolve based on the identifier since it will be looking in the proper library but
-    // we need
-    // to put the formatted identifier into the maps since this is the format MAT is looking for
+    // we need to put the formatted identifier into the maps.
     String dataType =
         parseString(ctx.namedTypeSpecifier().referentialOrTypeNameIdentifier().getText());
-    Element element = resolve(identifier, getCurrentLibraryContext());
-    if (element instanceof ValueSetDef) {
+
+    if (getCurrentLibraryContext().resolveValueSetRef(identifier) != null) {
       Map<String, Set<String>> current = valueSetDataTypeMap.get(currentContext);
       if (current == null) {
         valueSetDataTypeMap.put(currentContext, new HashMap<>());
@@ -411,9 +416,11 @@ public class Cql2ElmListener extends cqlBaseListener {
 
       current.get(formattedIdentifier).add(dataType);
       valueSetOids.putIfAbsent(
-          formattedIdentifier, ((ValueSetDef) element).getId().substring("urn:oid:".length()));
-
-    } else if (element instanceof CodeDef codeDef) {
+          formattedIdentifier,
+          (getCurrentLibraryContext().resolveValueSetRef(identifier))
+              .getId()
+              .substring("urn:oid:".length()));
+    } else if (getCurrentLibraryContext().resolveCodeRef(identifier) != null) {
       Map<String, Set<String>> current = codeDataTypeMap.get(currentContext);
       if (current == null) {
         codeDataTypeMap.put(currentContext, new HashMap<>());
@@ -427,6 +434,7 @@ public class Cql2ElmListener extends cqlBaseListener {
       }
 
       current.get(formattedIdentifier).add(dataType);
+      CodeDef codeDef = getCurrentLibraryContext().resolveCodeRef(identifier);
       drcs.putIfAbsent(
           formattedIdentifier,
           CQLCode.builder()
@@ -569,14 +577,16 @@ public class Cql2ElmListener extends cqlBaseListener {
     return formattedIdentifier;
   }
 
-  private Element resolve(String identifier, CompiledLibrary library) {
-    Element element = library.resolve(identifier);
+  private void resolve(String identifier, CompiledLibrary library) {
+    ResolvedIdentifierContext resolvedIdentifierContext = library.resolve(identifier);
     String formattedIdentifier = formatIdentifier(identifier);
-    libraryAccessor =
-        null; // we've done all we need to do with the accessor, so set it equal to null so it can
-    // be
-    // updated again if need be.
-    if (element instanceof IncludeDef def) {
+    // we've done all we need to do with the accessor,
+    // so set it equal to null so it can be updated again if need be.
+    libraryAccessor = null;
+
+    if (resolvedIdentifierContext.getElementOfType(IncludeDef.class).isPresent()) {
+      IncludeDef def = resolvedIdentifierContext.getElementOfType(IncludeDef.class).get();
+
       graph.addEdge(
           currentContext, def.getPath() + "-" + def.getVersion() + "|" + def.getLocalIdentifier());
       libraryAccessor = def;
@@ -606,7 +616,8 @@ public class Cql2ElmListener extends cqlBaseListener {
             "IOException while parsing child library [{}] " + e.getMessage(),
             def.getPath() + "-" + def.getVersion());
       }
-    } else if (element instanceof CodeDef codeDef) {
+    } else if (resolvedIdentifierContext.getElementOfType(CodeDef.class).isPresent()) {
+      CodeDef codeDef = resolvedIdentifierContext.getElementOfType(CodeDef.class).get();
       codes.add(formattedIdentifier);
       CQLCodeSystem cqlCodeSystem = codeSystemMap.get(codeDef.getCodeSystem().getName());
       CQLCode declaredCode =
@@ -622,10 +633,11 @@ public class Cql2ElmListener extends cqlBaseListener {
               .build();
       declaredCodes.add(declaredCode);
       graph.addEdge(currentContext, formattedIdentifier);
-    } else if (element instanceof CodeSystemDef) {
+    } else if (resolvedIdentifierContext.getElementOfType(CodeSystemDef.class).isPresent()) {
       codesystems.add(identifier);
       graph.addEdge(currentContext, formattedIdentifier);
-    } else if (element instanceof ValueSetDef vsDef) {
+    } else if (resolvedIdentifierContext.getElementOfType(ValueSetDef.class).isPresent()) {
+      ValueSetDef vsDef = resolvedIdentifierContext.getElementOfType(ValueSetDef.class).get();
       valuesets.add(formattedIdentifier);
       graph.addEdge(currentContext, formattedIdentifier);
 
@@ -638,7 +650,9 @@ public class Cql2ElmListener extends cqlBaseListener {
               .build();
       cqlValuesets.add(declaredValueSet);
 
-    } else if (element instanceof ParameterDef parameterDef) {
+    } else if (resolvedIdentifierContext.getElementOfType(ParameterDef.class).isPresent()) {
+      ParameterDef parameterDef =
+          resolvedIdentifierContext.getElementOfType(ParameterDef.class).get();
       CQLParameter parameter =
           CQLParameter.builder()
               .parameterName(formattedIdentifier)
@@ -646,7 +660,7 @@ public class Cql2ElmListener extends cqlBaseListener {
               .build();
       parameters.add(parameter);
       graph.addEdge(currentContext, formattedIdentifier);
-    } else if (element instanceof ExpressionDef) {
+    } else if (resolvedIdentifierContext.getElementOfType(ExpressionDef.class).isPresent()) {
       definitions.add(formattedIdentifier);
       graph.addEdge(currentContext, formattedIdentifier);
     } else {
@@ -663,8 +677,6 @@ public class Cql2ElmListener extends cqlBaseListener {
                 }
               });
     }
-
-    return element;
   }
 
   private void parseChildLibraries(IncludeDef def) throws IOException {
