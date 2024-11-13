@@ -725,4 +725,9 @@ public class Cql2ElmListener extends cqlBaseListener {
     drcs.putAll(listener.getDrcs());
     definitionContents.addAll(listener.getDefinitionContents());
   }
+
+  @Override
+  public void enterContextDefinition(cqlParser.ContextDefinitionContext ctx) {
+    libraryAccessor = null;
+  }
 }
