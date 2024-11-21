@@ -12,4 +12,5 @@ public class DefinitionContent {
   private String content;
   private List<CQLFunctionArgument> functionArguments;
   private boolean function; // MAT-7450
+  private int startLine; // MAT-7897
 }

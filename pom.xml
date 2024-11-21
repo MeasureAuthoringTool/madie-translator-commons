@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gov.cms.madie</groupId>
 	<artifactId>madie-translator-commons</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
@@ -68,11 +68,11 @@
 			<artifactId>cql-to-elm</artifactId>
 			<version>${cqframework.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>gov.cms.madie</groupId>
-			<artifactId>madie-rest-commons</artifactId>
-			<version>${madie.rest.commons.version}</version>
-		</dependency>
+	<dependency>
+		<groupId>gov.cms.madie</groupId>
+		<artifactId>madie-rest-commons</artifactId>
+		<version>${madie.rest.commons.version}</version>
+	</dependency>
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
@@ -92,6 +92,14 @@
 			<version>${hamcrest.version}</version>
 			<scope>test</scope>
 		</dependency>
+		    <!-- JAXB API only -->
+
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.moxy</artifactId>
+      <version>4.0.2</version>
+      <scope>test</scope>
+    </dependency>
 		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
 		<dependency>
 			<groupId>org.mockito</groupId>
