@@ -131,9 +131,10 @@ public class CQLTools {
 
     TranslationResource translationResource =
         TranslationResource.getInstance(
-            usingProperties.getLibraryType() == "FHIR"
-                || usingProperties.getLibraryType()
-                    == "QICore"); // <-- BADDDDD!!!! Defaults to fhir
+            usingProperties.getLibraryType().equals("FHIR")
+                || usingProperties
+                    .getLibraryType()
+                    .equals("QICore")); // <-- BADDDDD!!!! Defaults to fhir
 
     CqlPreprocessorElmCommonVisitor preprocessor =
         new CqlPreprocessorElmCommonVisitor(

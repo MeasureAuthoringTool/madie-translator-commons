@@ -20,5 +20,6 @@ public class CqlBuilderLookup {
     private String libraryName;
     private String libraryAlias;
     private String logic;
+    private int startLine;
   }
 }

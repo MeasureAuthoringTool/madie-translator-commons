@@ -17,15 +17,16 @@ public class CQLDefinition implements CQLExpression {
   private String uuid;
   private String definitionName;
   private String definitionLogic;
-  private String context = "Patient";
+  @Builder.Default private String context = "Patient";
   private boolean supplDataElement;
   private boolean popDefinition;
-  private String commentString = "";
+  @Builder.Default private String commentString = "";
   private String returnType;
   private String parentLibrary;
   private String libraryDisplayName;
   private String libraryVersion;
   private boolean isFunction;
+  private int startLine;
   private List<CQLFunctionArgument> functionArguments;
 
   public static class Comparator implements java.util.Comparator<CQLDefinition> {
@@ -84,5 +85,10 @@ public class CQLDefinition implements CQLExpression {
     }
     CQLDefinition that = (CQLDefinition) o;
     return Objects.equals(definitionName, that.definitionName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(uuid);
   }
 }

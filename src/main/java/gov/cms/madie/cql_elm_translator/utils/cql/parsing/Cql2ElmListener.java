@@ -272,7 +272,12 @@ public class Cql2ElmListener extends cqlBaseListener {
             .getInputStream()
             .getText(new Interval(ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex()));
     definitionContents.add(
-        DefinitionContent.builder().name(currentContext).content(content).build());
+        // add line the def starts on to DefinitionContent
+        DefinitionContent.builder()
+            .startLine(ctx.getStart().getLine())
+            .name(currentContext)
+            .content(content)
+            .build());
     graph.addNode(currentContext);
   }
 
