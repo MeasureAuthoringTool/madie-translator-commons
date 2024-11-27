@@ -26,12 +26,16 @@ public class CqlBuilderLookup {
 
     @Override
     public boolean equals(Object o) {
-      if (o == this) return true;
+      if (o == this) {
+        return true;
+      }
       CqlBuilderLookup.Lookup lookup = (CqlBuilderLookup.Lookup) o;
 
       if (StringUtils.equals(lookup.getName(), this.getName())
           && StringUtils.equals(lookup.getLibraryAlias(), this.getLibraryAlias())
-          && lookup.getLibraryName().equals(this.getLibraryName())) return true;
+          && lookup.getLibraryName().equals(this.getLibraryName())) {
+        return true;
+      }
       return false;
     }
   }

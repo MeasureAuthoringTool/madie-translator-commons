@@ -89,14 +89,7 @@ public class CQLDefinition implements CQLExpression {
     boolean result =
         Objects.equals(definitionName, that.definitionName)
             && Objects.equals(libraryDisplayName, that.libraryDisplayName);
-    if (result && ("SDE Race".equals(definitionName) || "SDE Ethnicity".equals(definitionName)))
-      log.info(
-          "this \"{}\".{} ; that \"{}\".{}.  Are Equal? {}",
-          libraryDisplayName,
-          definitionName,
-          that.libraryDisplayName,
-          that.definitionName,
-          result);
+
     return result;
   }
 

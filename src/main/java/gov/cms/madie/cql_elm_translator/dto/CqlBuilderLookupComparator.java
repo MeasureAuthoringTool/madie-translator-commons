@@ -15,20 +15,6 @@ public class CqlBuilderLookupComparator<T> implements Comparator<CqlBuilderLooku
    */
   public int compare(CqlBuilderLookup.Lookup lookup1, CqlBuilderLookup.Lookup lookup2) {
 
-    //    if (StringUtils.equals(lookup1.getName(), "SDE Race")
-    //        || StringUtils.equals(lookup2.getName(), "SDE Race")) {
-    //      log.info(
-    //          "LOOKUP1:Alias = {}, Name = {}, Linenumber = {};  ",
-    //          lookup1.getLibraryAlias(),
-    //          lookup1.getName(),
-    //          lookup1.getStartLine());
-    //      log.info(
-    //          "LOOKUP2:Alias = {}, Name = {}, Linenumber = {};  ",
-    //          lookup2.getLibraryAlias(),
-    //          lookup2.getName(),
-    //          lookup2.getStartLine());
-    //    }
-    // if the names are the same
     int result;
 
     if (StringUtils.equalsIgnoreCase(lookup1.getName(), lookup2.getName())
@@ -40,9 +26,7 @@ public class CqlBuilderLookupComparator<T> implements Comparator<CqlBuilderLooku
     } else {
       result = lookup1.getStartLine() - lookup2.getStartLine();
     }
-    if (lookup1.getName().equals("SDE Race")) {
-      log.info("Adding {} according to comparater {}", lookup1.getName(), lookup1.getStartLine());
-    }
+
     return result;
   }
 }
