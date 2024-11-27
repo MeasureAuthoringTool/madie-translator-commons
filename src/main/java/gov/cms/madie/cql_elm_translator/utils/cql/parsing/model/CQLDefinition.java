@@ -31,7 +31,9 @@ public class CQLDefinition implements CQLExpression {
 
   public static class Comparator implements java.util.Comparator<CQLDefinition> {
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
      */
     @Override
@@ -84,7 +86,11 @@ public class CQLDefinition implements CQLExpression {
       return false;
     }
     CQLDefinition that = (CQLDefinition) o;
-    return Objects.equals(definitionName, that.definitionName);
+    boolean result =
+        Objects.equals(definitionName, that.definitionName)
+            && Objects.equals(libraryDisplayName, that.libraryDisplayName);
+
+    return result;
   }
 
   @Override
