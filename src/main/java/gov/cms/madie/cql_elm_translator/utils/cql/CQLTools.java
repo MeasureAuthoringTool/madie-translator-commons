@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -37,7 +36,6 @@ import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.CQLParameter;
 import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.CQLValueSet;
 import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.DefinitionContent;
 
-@Slf4j
 @Getter
 public class CQLTools {
 
@@ -147,9 +145,7 @@ public class CQLTools {
     preprocessor.visit(tree);
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(listener, tree);
-    Set<DefinitionContent> defConts = listener.getDefinitionContents();
-
-    definitionContents.addAll(defConts);
+    definitionContents.addAll(listener.getDefinitionContents());
 
     allParameters.addAll(listener.getParameters()); // MAT-7450
     callstack = graph.getAdjacencyList();
