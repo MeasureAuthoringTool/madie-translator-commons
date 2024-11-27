@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import lombok.Getter;
+
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -131,9 +132,10 @@ public class CQLTools {
 
     TranslationResource translationResource =
         TranslationResource.getInstance(
-            usingProperties.getLibraryType() == "FHIR"
-                || usingProperties.getLibraryType()
-                    == "QICore"); // <-- BADDDDD!!!! Defaults to fhir
+            usingProperties.getLibraryType().equals("FHIR")
+                || usingProperties
+                    .getLibraryType()
+                    .equals("QICore")); // <-- BADDDDD!!!! Defaults to fhir
 
     CqlPreprocessorElmCommonVisitor preprocessor =
         new CqlPreprocessorElmCommonVisitor(
@@ -143,8 +145,8 @@ public class CQLTools {
     preprocessor.visit(tree);
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(listener, tree);
-
     definitionContents.addAll(listener.getDefinitionContents());
+
     allParameters.addAll(listener.getParameters()); // MAT-7450
     callstack = graph.getAdjacencyList();
 

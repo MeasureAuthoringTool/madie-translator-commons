@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Data
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -17,15 +19,16 @@ public class CQLDefinition implements CQLExpression {
   private String uuid;
   private String definitionName;
   private String definitionLogic;
-  private String context = "Patient";
+  @Builder.Default private String context = "Patient";
   private boolean supplDataElement;
   private boolean popDefinition;
-  private String commentString = "";
+  @Builder.Default private String commentString = "";
   private String returnType;
   private String parentLibrary;
   private String libraryDisplayName;
   private String libraryVersion;
   private boolean isFunction;
+  private int startLine;
   private List<CQLFunctionArgument> functionArguments;
 
   public static class Comparator implements java.util.Comparator<CQLDefinition> {
@@ -83,6 +86,15 @@ public class CQLDefinition implements CQLExpression {
       return false;
     }
     CQLDefinition that = (CQLDefinition) o;
-    return Objects.equals(definitionName, that.definitionName);
+    boolean result =
+        Objects.equals(definitionName, that.definitionName)
+            && Objects.equals(libraryDisplayName, that.libraryDisplayName);
+
+    return result;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(uuid);
   }
 }

@@ -1,6 +1,7 @@
 <project
 	xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gov.cms.madie</groupId>
 	<artifactId>madie-translator-commons</artifactId>
@@ -25,12 +26,13 @@
 		<com.jayway.jsonpath.version>2.9.0</com.jayway.jsonpath.version>
 	</properties>
 	<distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>MeasureAuthoringTool madie translator commons Package</name>
-            <url>https://maven.pkg.github.com/measureauthoringtool/madie-translator-commons</url>
-        </repository>
-    </distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>MeasureAuthoringTool madie translator commons Package</name>
+			<url>
+				https://maven.pkg.github.com/measureauthoringtool/madie-translator-commons</url>
+		</repository>
+	</distributionManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -78,7 +80,14 @@
 			<artifactId>javax.ws.rs-api</artifactId>
 			<version>2.1.1</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>org.eclipse.persistence.moxy</artifactId>
+			<version>4.0.2</version>
+			<scope>test</scope>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
@@ -99,14 +108,16 @@
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
+		<!--
+		https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
+		<!--
+		https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
 			<artifactId>jakarta.xml.bind-api</artifactId>
@@ -119,12 +130,12 @@
 			<version>${jaxb.api.version}</version>
 		</dependency>
 		<!-- JAXB RI -->
-	    <dependency>
-	    	<groupId>com.sun.xml.bind</groupId>
-	    	<artifactId>jaxb-impl</artifactId>
-	    	<version>4.0.4</version>
-	    	<scope>runtime</scope>
-	    </dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>4.0.4</version>
+			<scope>runtime</scope>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.springframework/spring-test -->
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -133,29 +144,29 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-	      <groupId>gov.cms.madie</groupId>
-	      	<artifactId>madie-java-models</artifactId>
-	      	<version>${gov.cms.madie.models.version}</version>
-	      	<exclusions>
-	        	<exclusion>
-	          		<artifactId>jackson-core</artifactId>
-	          		<groupId>com.fasterxml.jackson.core</groupId>
-	        	</exclusion>
-	        	<exclusion>
-	          		<artifactId>jackson-databind</artifactId>
-	          		<groupId>com.fasterxml.jackson.core</groupId>
-	        	</exclusion>
-	        	<exclusion>
-	          		<artifactId>jackson-annotations</artifactId>
-	          		<groupId>com.fasterxml.jackson.core</groupId>
-	        	</exclusion>
-	      	</exclusions>
-	    </dependency>
-	    <dependency>
-      		<groupId>com.jayway.jsonpath</groupId>
-      		<artifactId>json-path</artifactId>
-      		<version>${com.jayway.jsonpath.version}</version>
-    	</dependency>
+			<groupId>gov.cms.madie</groupId>
+			<artifactId>madie-java-models</artifactId>
+			<version>${gov.cms.madie.models.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jackson-core</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-databind</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-annotations</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>${com.jayway.jsonpath.version}</version>
+		</dependency>
 	</dependencies>
 	<!--    Required to fetch artifacts from repositories other than maven central -->
 	<repositories>
@@ -165,7 +176,8 @@
 			</releases>
 			<id>github</id>
 			<name>Github madie rest commons</name>
-			<url>https://maven.pkg.github.com/MeasureAuthoringTool/madie-rest-commons</url>
+			<url>
+				https://maven.pkg.github.com/MeasureAuthoringTool/madie-rest-commons</url>
 		</repository>
 	</repositories>
 	<build>
