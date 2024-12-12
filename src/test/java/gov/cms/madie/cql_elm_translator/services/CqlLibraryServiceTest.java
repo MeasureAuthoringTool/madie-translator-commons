@@ -78,7 +78,7 @@ class CqlLibraryServiceTest {
   }
 
   @Test
-  void getLibraryCqlThrowCqlIncludeException() {
+  void getLibraryCqlWrongModelThrowCqlIncludeException() {
     String cql =
         "library QICoreCommon version '1.3.000'\n"
             + "using QICore version '4.1.1'\n"
@@ -88,6 +88,46 @@ class CqlLibraryServiceTest {
     String wrongLibrarycql =
         "library QICoreCommon version '1.3.000'\n"
             + "using QDM version '5.6'\n"
+            + "Response Cql String";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(wrongLibrarycql, HttpStatus.OK));
+    assertThrows(
+        CqlIncludeException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+  }
+
+  @Test
+  void getLibraryCqlWrongVersionThrowCqlIncludeException() {
+    String cql =
+        "library QICoreCommon version '1.3.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(cql, "ACCESS_TOKEN");
+
+    String wrongLibrarycql =
+        "library QICoreCommon version '1.3.000'\n"
+            + "using QICore version '6.0.0'\n"
+            + "Response Cql String";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(wrongLibrarycql, HttpStatus.OK));
+    assertThrows(
+        CqlIncludeException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+  }
+
+  @Test
+  void getLibraryCqlWrongModelAndVersionThrowCqlIncludeException() {
+    String cql =
+        "library QICoreCommon version '1.3.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(cql, "ACCESS_TOKEN");
+
+    String wrongLibrarycql =
+        "library QICoreCommon version '1.3.000'\n"
+            + "using FHIR version '4.0.1'\n"
             + "Response Cql String";
     when(restTemplate.exchange(
             libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
