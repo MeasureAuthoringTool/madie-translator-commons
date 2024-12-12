@@ -62,7 +62,7 @@ public class CqlLibraryService {
 
         UsingProperties libraryUsing = new CqlTextParser(responseEntity.getBody()).getUsing();
         if (libraryUsing.getLine().equals(MadieLibrarySourceProvider.getUsingProperties().getLine())
-            || supportedLibraries.contains(libraryUsing.getLibraryType())) {
+            && supportedLibraries.contains(libraryUsing.getLibraryType())) {
           return responseEntity.getBody();
         }
         log.error("Library model and version does not match the Measure model and version");
