@@ -118,7 +118,7 @@ class CqlLibraryServiceTest {
   }
 
   @Test
-  void getLibraryCqlWrongModelAndVersionThrowCqlIncludeException() {
+  void getLibraryCqlQICoreAndFHIRAreOK() {
     String cql =
         "library QICoreCommon version '1.3.000'\n"
             + "using QICore version '4.1.1'\n"
@@ -132,9 +132,9 @@ class CqlLibraryServiceTest {
     when(restTemplate.exchange(
             libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
         .thenReturn(new ResponseEntity<>(wrongLibrarycql, HttpStatus.OK));
-    assertThrows(
-        CqlIncludeException.class,
-        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+    String responseBody =
+        cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+    assertTrue(responseBody.contains("Response Cql String"));
   }
 
   @Test
