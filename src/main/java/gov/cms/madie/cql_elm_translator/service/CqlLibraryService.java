@@ -61,8 +61,7 @@ public class CqlLibraryService {
                 .toList();
 
         UsingProperties libraryUsing = new CqlTextParser(responseEntity.getBody()).getUsing();
-        if (libraryUsing.getLine().equals(MadieLibrarySourceProvider.getUsingProperties().getLine())
-            && supportedLibraries.contains(libraryUsing.getLibraryType())) {
+        if (validateUsingStatements(libraryUsing)) {
           return responseEntity.getBody();
         }
         log.error("Library model and version does not match the Measure model and version");
@@ -92,6 +91,26 @@ public class CqlLibraryService {
       log.error(message);
       throw new LibraryResourceLoaderException(message);
     }
+  }
+
+  private boolean validateUsingStatements(UsingProperties libraryUsing) {
+    String[] includeStatement = libraryUsing.getLine().split(" ");
+    String[] measureProperties =
+        MadieLibrarySourceProvider.getUsingProperties().getLine().split(" ");
+    // QICore
+    if ((measureProperties[1].equals("QICore")
+            && includeStatement[1].equals("FHIR")
+            && includeStatement[3].equals("'4.0.1'"))
+        || (includeStatement[1].equals("QICore")
+            && measureProperties[1].equals("QICore")
+            && includeStatement[3].equals(measureProperties[3]))) {
+      return true;
+    }
+    // QDM -> model & version need to match
+    if (libraryUsing.getLine().equals(MadieLibrarySourceProvider.getUsingProperties().getLine())) {
+      return true;
+    }
+    return false;
   }
 
   private URI buildMadieLibraryServiceUri(String name, String version) {
