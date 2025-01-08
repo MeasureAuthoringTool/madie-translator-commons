@@ -398,12 +398,13 @@ public class CQLTools {
     this.allNamesToReturnTypeMap.put(libraryName + "-" + libraryVersion, new HashMap<>());
 
     for (ExpressionDef expression : statements.getDef()) {
+      String resultType =
+          expression.getResultType() == null ? null : expression.getResultType().toString();
       this.allNamesToReturnTypeMap
           .get(libraryName + "-" + libraryVersion)
-          .put(expression.getName(), expression.getResultType().toString());
-      this.nameToReturnTypeMap.put(expression.getName(), expression.getResultType().toString());
-      this.expressionToReturnTypeMap.put(
-          expression.getName(), expression.getResultType().toString());
+          .put(expression.getName(), resultType);
+      this.nameToReturnTypeMap.put(expression.getName(), resultType);
+      this.expressionToReturnTypeMap.put(expression.getName(), resultType);
     }
 
     if (parameters != null) {
