@@ -126,17 +126,19 @@ public class TranslationResource {
       }
       List<CqlCompilerOptions.Options> optionsList = new ArrayList<>();
 
-      for (String key : params.keySet()) {
-        if (PARAMS_TO_OPTIONS_MAP.containsKey(key) && Boolean.parseBoolean(params.getFirst(key))) {
-          optionsList.addAll(PARAMS_TO_OPTIONS_MAP.get(key));
-        } else if (key.equals("validate-units") && Boolean.parseBoolean(params.getFirst(key))) {
+      for (String paramKey : params.keySet()) {
+        if (PARAMS_TO_OPTIONS_MAP.containsKey(paramKey)
+            && Boolean.parseBoolean(params.getFirst(paramKey))) {
+          optionsList.addAll(PARAMS_TO_OPTIONS_MAP.get(paramKey));
+        } else if (paramKey.equals("validate-units")
+            && Boolean.parseBoolean(params.getFirst(paramKey))) {
           ucumService = getUcumService();
-        } else if (key.equals("signatures")) {
+        } else if (paramKey.equals("signatures")) {
           signatureLevel = LibraryBuilder.SignatureLevel.valueOf(params.getFirst("signatures"));
-        } else if (key.equals("error-severity")) {
+        } else if (paramKey.equals("error-severity")) {
           // error-severity can either be Info (default)|Warning|Error
           // If no Error Level is provided libraryManager will default it to INFO
-          List<String> severityList = params.get(key);
+          List<String> severityList = params.get(paramKey);
           if (severityList != null && !severityList.isEmpty()) {
             String severityStr = severityList.get(0);
             try {
