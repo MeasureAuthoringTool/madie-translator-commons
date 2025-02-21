@@ -6,6 +6,7 @@ import java.io.InputStream;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.cqframework.cql.cql2elm.CqlCompilerException;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.hl7.elm.r1.VersionedIdentifier;
 
@@ -17,7 +18,7 @@ public class RequestData {
 
   @Getter private String cqlData;
 
-  @Getter private boolean showWarnings;
+  @Getter private CqlCompilerException.ErrorSeverity errorSeverity;
   @Getter private VersionedIdentifier sourceInfo;
 
   @Getter String identifier;
@@ -44,7 +45,7 @@ public class RequestData {
     map.add("disable-list-promotion", disableListPromotion.toString());
     map.add("disable-method-invocation", disableMethodInvocation.toString());
     map.add("validate-units", validateUnits.toString());
-    map.add("validate-units", validateUnits.toString());
+    map.add("error-severity", errorSeverity.toString());
     map.add("result-types", resultTypes.toString());
 
     // Enforcing detailed errors and not providing an option to Client
