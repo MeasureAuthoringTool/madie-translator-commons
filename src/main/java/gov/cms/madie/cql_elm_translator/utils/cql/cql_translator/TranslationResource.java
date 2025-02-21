@@ -8,11 +8,8 @@ import java.util.List;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.cqframework.cql.cql2elm.CqlCompilerOptions;
-import org.cqframework.cql.cql2elm.CqlTranslator;
-import org.cqframework.cql.cql2elm.LibraryBuilder;
-import org.cqframework.cql.cql2elm.LibraryManager;
-import org.cqframework.cql.cql2elm.ModelManager;
+import org.cqframework.cql.cql2elm.*;
+import org.cqframework.cql.cql2elm.CqlCompilerException.ErrorSeverity;
 import org.fhir.ucum.UcumEssenceService;
 import org.fhir.ucum.UcumException;
 import org.fhir.ucum.UcumService;
@@ -136,6 +133,19 @@ public class TranslationResource {
           ucumService = getUcumService();
         } else if (key.equals("signatures")) {
           signatureLevel = LibraryBuilder.SignatureLevel.valueOf(params.getFirst("signatures"));
+        } else if (key.equals("error-severity")) {
+          // error-severity can either be Info (default)|Warning|Error
+          // If no Error Level is provided libraryManager will default it to INFO
+          List<String> severityList = params.get(key);
+          if (severityList != null && !severityList.isEmpty()) {
+            String severityStr = severityList.get(0);
+            try {
+              ErrorSeverity severity = ErrorSeverity.valueOf(severityStr);
+              libraryManager.getCqlCompilerOptions().setErrorLevel(severity);
+            } catch (IllegalArgumentException e) {
+              throw new TranslationFailureException("Invalid error level is provided:", e);
+            }
+          }
         }
       }
 
@@ -151,9 +161,7 @@ public class TranslationResource {
         libraryManager.getCqlCompilerOptions().setSignatureLevel(signatureLevel);
       }
       libraryManager.getCqlCompilerOptions().setOptions(options);
-      CqlTranslator translator =
-          CqlTranslator.fromStream(nsInfo, sourceInfo, cqlStream, libraryManager);
-      return translator;
+      return CqlTranslator.fromStream(nsInfo, sourceInfo, cqlStream, libraryManager);
 
     } catch (Exception e) {
       throw new TranslationFailureException("Unable to read request", e);
