@@ -8,11 +8,7 @@ import java.util.List;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.cqframework.cql.cql2elm.CqlCompilerOptions;
-import org.cqframework.cql.cql2elm.CqlTranslator;
-import org.cqframework.cql.cql2elm.LibraryBuilder;
-import org.cqframework.cql.cql2elm.LibraryManager;
-import org.cqframework.cql.cql2elm.ModelManager;
+import org.cqframework.cql.cql2elm.*;
 import org.fhir.ucum.UcumEssenceService;
 import org.fhir.ucum.UcumException;
 import org.fhir.ucum.UcumService;
@@ -129,13 +125,29 @@ public class TranslationResource {
       }
       List<CqlCompilerOptions.Options> optionsList = new ArrayList<>();
 
-      for (String key : params.keySet()) {
-        if (PARAMS_TO_OPTIONS_MAP.containsKey(key) && Boolean.parseBoolean(params.getFirst(key))) {
-          optionsList.addAll(PARAMS_TO_OPTIONS_MAP.get(key));
-        } else if (key.equals("validate-units") && Boolean.parseBoolean(params.getFirst(key))) {
+      for (String paramKey : params.keySet()) {
+        if (PARAMS_TO_OPTIONS_MAP.containsKey(paramKey)
+            && Boolean.parseBoolean(params.getFirst(paramKey))) {
+          optionsList.addAll(PARAMS_TO_OPTIONS_MAP.get(paramKey));
+        } else if (paramKey.equals("validate-units")
+            && Boolean.parseBoolean(params.getFirst(paramKey))) {
           ucumService = getUcumService();
-        } else if (key.equals("signatures")) {
+        } else if (paramKey.equals("signatures")) {
           signatureLevel = LibraryBuilder.SignatureLevel.valueOf(params.getFirst("signatures"));
+        } else if (paramKey.equals("error-severity")) {
+          // error-severity can either be Info (default)|Warning|Error
+          // If no Error Level is provided libraryManager will default it to INFO
+          List<String> severityList = params.get(paramKey);
+          if (severityList != null && !severityList.isEmpty()) {
+            String severityStr = severityList.get(0);
+            try {
+              CqlCompilerException.ErrorSeverity severity =
+                  CqlCompilerException.ErrorSeverity.valueOf(severityStr);
+              libraryManager.getCqlCompilerOptions().setErrorLevel(severity);
+            } catch (IllegalArgumentException e) {
+              throw new TranslationFailureException("Invalid error level is provided:", e);
+            }
+          }
         }
       }
 
@@ -151,9 +163,7 @@ public class TranslationResource {
         libraryManager.getCqlCompilerOptions().setSignatureLevel(signatureLevel);
       }
       libraryManager.getCqlCompilerOptions().setOptions(options);
-      CqlTranslator translator =
-          CqlTranslator.fromStream(nsInfo, sourceInfo, cqlStream, libraryManager);
-      return translator;
+      return CqlTranslator.fromStream(nsInfo, sourceInfo, cqlStream, libraryManager);
 
     } catch (Exception e) {
       throw new TranslationFailureException("Unable to read request", e);
