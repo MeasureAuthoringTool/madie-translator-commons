@@ -1,13 +1,16 @@
-name: CI
+name: Publish Snapshot
 
 on:
-  pull_request:
+  push:
     branches:
-      - develop  # Runs on PRs targeting the develop branch
+      - develop  # Runs only when code is pushed (merged) to develop
 
 jobs:
-  build:
+  publish-snapshot:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -17,8 +20,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '17'
-        # Github Authentication is required to download artifacts from github packages
-        # A secret is created for this repo, so that github actions can fetch it, the secret is named after GH_PAT_FOR_ACTIONS_TOKEN
+
       - name: Configure Github Authentication for Maven
         uses: s4u/maven-settings-action@v2
         with:
@@ -29,3 +31,13 @@ jobs:
         run: mvn clean install --file pom.xml
         env:
           GITHUB_TOKEN_REF: ${{ secrets.GH_PAT_FOR_ACTIONS_TOKEN }}
+
+      - name: Extract Project Version
+        id: project
+        run: echo "::set-output name=version::$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)"
+
+      - name: Build and Publish SNAPSHOT Version
+        if: contains(steps.project.outputs.version, '-SNAPSHOT')
+        run: mvn -B --no-transfer-progress clean deploy -DskipTests
+        env:
+          GITHUB_TOKEN_REF: ${{ secrets.GITHUB_TOKEN }}
