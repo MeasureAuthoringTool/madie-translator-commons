@@ -62,17 +62,41 @@
 		</dependency>
 		<dependency>
 			<groupId>info.cqframework</groupId>
-			<artifactId>cql-formatter</artifactId>
+			<artifactId>model-jaxb</artifactId>
 			<version>${cqframework.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>info.cqframework</groupId>
 			<artifactId>cql-to-elm</artifactId>
 			<version>${cqframework.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>elm</artifactId>
+			<version>${cqframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>elm-jaxb</artifactId>
+			<version>${cqframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>quick</artifactId>
+			<version>${cqframework.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>info.cqframework</groupId>
 			<artifactId>qdm</artifactId>
+			<version>${cqframework.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>cql-formatter</artifactId>
 			<version>${cqframework.version}</version>
 		</dependency>
 		<dependency>
