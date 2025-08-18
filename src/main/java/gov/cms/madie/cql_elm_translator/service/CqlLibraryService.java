@@ -107,7 +107,9 @@ public class CqlLibraryService {
       return true;
     }
     // QDM -> model & version need to match
-    if (libraryUsing.getLine().equals(MadieLibrarySourceProvider.getUsingProperties().getLine())) {
+    if (libraryUsing
+        .getLine()
+        .equals(MadieLibrarySourceProvider.getUsingProperties().getLine().trim())) {
       return true;
     }
     return false;

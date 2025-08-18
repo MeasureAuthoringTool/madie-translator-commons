@@ -66,7 +66,7 @@ class CqlLibraryServiceTest {
   void getLibraryCql() {
     String cql =
         "library QICoreCommon version '1.3.000'\n"
-            + "using QICore version '4.1.1'\n"
+            + "using QICore version '4.1.1'   \n"
             + "Response Cql String";
     cqlLibraryService.setUpLibrarySourceProvider(cql, "ACCESS_TOKEN");
     when(restTemplate.exchange(
