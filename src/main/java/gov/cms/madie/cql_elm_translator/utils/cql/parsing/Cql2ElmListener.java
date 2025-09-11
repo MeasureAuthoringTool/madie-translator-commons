@@ -374,8 +374,25 @@ public class Cql2ElmListener extends cqlBaseListener {
 
   @Override
   public void enterRetrieve(@NotNull cqlParser.RetrieveContext ctx) {
-
     // we only care about entering a retrieve if it has a terminology
+    // this case handles definitions where type is the value and no filter
+    if (ctx.getChildCount() == 3 && !ctx.getChild(1).getText().isEmpty()) {
+      String dataType = ctx.getChild(1).getText();
+      String alreadyFormattedIdentifier = ctx.getChild(1).getText();
+      Map<String, Set<String>> current = valueSetDataTypeMap.get(currentContext);
+      if (current == null) {
+        valueSetDataTypeMap.put(currentContext, new HashMap<>());
+      }
+
+      current = valueSetDataTypeMap.get(currentContext);
+      Set<String> currentSet = current.get(alreadyFormattedIdentifier);
+      if (currentSet == null) {
+        currentSet = new HashSet<>();
+        current.put(alreadyFormattedIdentifier, currentSet);
+      }
+      current.get(alreadyFormattedIdentifier).add(dataType);
+    }
+
     if (ctx.terminology() == null || ctx.codePath() != null) {
       return;
     }
