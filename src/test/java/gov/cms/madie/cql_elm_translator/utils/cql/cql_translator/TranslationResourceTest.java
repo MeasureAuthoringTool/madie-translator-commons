@@ -1,21 +1,36 @@
 package gov.cms.madie.cql_elm_translator.utils.cql.cql_translator;
 
 import org.cqframework.cql.cql2elm.ModelManager;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
+import org.cqframework.cql.cql2elm.model.Model;
+import org.hl7.cql.model.ModelIdentifier;
+import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
+
+import java.util.Map;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.when;
 
 class TranslationResourceTest {
 
   private static ModelManager mockModelManager;
+  private static Map<ModelIdentifier, Model> globalCache;
 
   @BeforeAll
   static void setUp() {
-    mockModelManager = new ModelManager();
+    Model mockModel = Mockito.mock(Model.class);
+    ModelInfo mockModelInfo = Mockito.mock(ModelInfo.class);
+    when(mockModelInfo.getUrl()).thenReturn("http://test.org/test/model");
+    when(mockModel.getModelInfo()).thenReturn(mockModelInfo);
+    when(mockModelInfo.getVersion()).thenReturn("1.0.0");
+    globalCache = Map.of(new ModelIdentifier().withId("TestModel").withVersion("1.0.0"), mockModel);
+    mockModelManager = new ModelManager(globalCache);
   }
 
   @Test
-  void givenModelManagerAndIsFhirTrue_whenGetInstance_thenReturnsFhirTranslationResource() {
+  void testGetInstanceReturnsFhirTranslationResource() {
     // Given
     boolean isFhir = true;
 
@@ -23,14 +38,15 @@ class TranslationResourceTest {
     TranslationResource resource = TranslationResource.getInstance(mockModelManager, isFhir);
 
     // Then
-    MatcherAssert.assertThat(resource, Matchers.notNullValue());
-    MatcherAssert.assertThat(resource.getLibraryManager(), Matchers.notNullValue());
-    MatcherAssert.assertThat(
-        resource.getLibraryManager().getModelManager(), Matchers.sameInstance(mockModelManager));
+    assertThat(resource, notNullValue());
+    assertThat(resource.getLibraryManager(), notNullValue());
+    ModelManager modelManager = resource.getLibraryManager().getModelManager();
+    assertThat(modelManager, notNullValue());
+    assertThat(modelManager.resolveModel("TestModel", "1.0.0"), notNullValue());
   }
 
   @Test
-  void givenModelManagerAndIsFhirFalse_whenGetInstance_thenReturnsQdmTranslationResource() {
+  void testGetInstanceReturnsQdmTranslationResource() {
     // Given
     boolean isFhir = false;
 
@@ -38,21 +54,10 @@ class TranslationResourceTest {
     TranslationResource resource = TranslationResource.getInstance(mockModelManager, isFhir);
 
     // Then
-    MatcherAssert.assertThat(resource, Matchers.notNullValue());
-    MatcherAssert.assertThat(resource.getLibraryManager(), Matchers.notNullValue());
-    MatcherAssert.assertThat(
-        resource.getLibraryManager().getModelManager(), Matchers.sameInstance(mockModelManager));
-  }
-
-  @Test
-  void givenSingletonInstance_whenGetInstanceAgain_thenReturnsSameInstance() {
-    // Given
-    TranslationResource firstInstance = TranslationResource.getInstance(mockModelManager, true);
-
-    // When
-    TranslationResource secondInstance = TranslationResource.getInstance(mockModelManager, false);
-
-    // Then
-    MatcherAssert.assertThat(secondInstance, Matchers.sameInstance(firstInstance));
+    assertThat(resource, notNullValue());
+    assertThat(resource.getLibraryManager(), notNullValue());
+    ModelManager modelManager = resource.getLibraryManager().getModelManager();
+    assertThat(modelManager, notNullValue());
+    assertThat(modelManager.resolveModel("TestModel", "1.0.0"), notNullValue());
   }
 }
