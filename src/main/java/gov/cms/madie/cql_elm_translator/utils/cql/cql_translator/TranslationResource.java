@@ -99,9 +99,26 @@ public class TranslationResource {
     this.libraryManager = new LibraryManager(modelManager, new CqlCompilerOptions());
   }
 
+  private TranslationResource(ModelManager modelManager, boolean isFhir) {
+    this.modelManager = modelManager;
+    this.libraryManager = new LibraryManager(modelManager, new CqlCompilerOptions());
+    if (isFhir) {
+      modelType = FHIR;
+    } else {
+      modelType = QDM;
+    }
+  }
+
   public static TranslationResource getInstance(boolean isFhir) {
     instance = new TranslationResource(isFhir);
     // returns the singleton object
+    return instance;
+  }
+
+  public static TranslationResource getInstance(ModelManager modelManager, boolean isFhir) {
+    if (instance == null) {
+      instance = new TranslationResource(modelManager, isFhir);
+    }
     return instance;
   }
 
