@@ -131,7 +131,7 @@ public class CQLTools {
     this.usingProperties = usingProperties;
 
     TranslationResource translationResource =
-        TranslationResource.getInstance(
+        new TranslationResource(
             usingProperties.getLibraryType().equals("FHIR")
                 || usingProperties
                     .getLibraryType()

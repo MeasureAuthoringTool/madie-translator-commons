@@ -35,7 +35,7 @@ class TranslationResourceTest {
     boolean isFhir = true;
 
     // When
-    TranslationResource resource = TranslationResource.getInstance(mockModelManager, isFhir);
+    TranslationResource resource = new TranslationResource(mockModelManager, isFhir);
 
     // Then
     assertThat(resource, notNullValue());
@@ -51,7 +51,7 @@ class TranslationResourceTest {
     boolean isFhir = false;
 
     // When
-    TranslationResource resource = TranslationResource.getInstance(mockModelManager, isFhir);
+    TranslationResource resource = new TranslationResource(mockModelManager, isFhir);
 
     // Then
     assertThat(resource, notNullValue());
