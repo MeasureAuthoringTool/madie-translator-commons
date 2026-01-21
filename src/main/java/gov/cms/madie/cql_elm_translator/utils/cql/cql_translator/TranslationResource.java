@@ -73,8 +73,6 @@ public class TranslationResource {
   private ModelManager modelManager;
   private LibraryManager libraryManager;
 
-  static TranslationResource instance = null;
-
   private String modelType;
   private static final String FHIR = "FHIR";
   private static final String QDM = "QDM";
@@ -83,7 +81,7 @@ public class TranslationResource {
     return libraryManager;
   }
 
-  private TranslationResource(boolean isFhir) {
+  public TranslationResource(boolean isFhir) {
     modelManager = new ModelManager();
     if (isFhir) {
       modelManager.resolveModel(FHIR, "4.0.1");
@@ -99,7 +97,7 @@ public class TranslationResource {
     this.libraryManager = new LibraryManager(modelManager, new CqlCompilerOptions());
   }
 
-  private TranslationResource(ModelManager modelManager, boolean isFhir) {
+  public TranslationResource(ModelManager modelManager, boolean isFhir) {
     this.modelManager = modelManager;
     this.libraryManager = new LibraryManager(modelManager, new CqlCompilerOptions());
     if (isFhir) {
@@ -107,19 +105,6 @@ public class TranslationResource {
     } else {
       modelType = QDM;
     }
-  }
-
-  public static TranslationResource getInstance(boolean isFhir) {
-    instance = new TranslationResource(isFhir);
-    // returns the singleton object
-    return instance;
-  }
-
-  public static TranslationResource getInstance(ModelManager modelManager, boolean isFhir) {
-    if (instance == null) {
-      instance = new TranslationResource(modelManager, isFhir);
-    }
-    return instance;
   }
 
   public CqlTranslator buildTranslator(RequestData requestData) {

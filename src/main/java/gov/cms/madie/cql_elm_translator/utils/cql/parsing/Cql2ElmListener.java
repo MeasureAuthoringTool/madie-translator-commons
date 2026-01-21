@@ -704,7 +704,7 @@ public class Cql2ElmListener extends cqlBaseListener {
     ParseTree tree = parser.library();
 
     TranslationResource translationResource =
-        TranslationResource.getInstance(true); // <-- BADDDDD!!!! Defaults to fhir
+        new TranslationResource(true); // <-- BADDDDD!!!! Defaults to fhir
 
     CqlPreprocessorElmCommonVisitor preprocessor =
         new CqlPreprocessorElmCommonVisitor(
