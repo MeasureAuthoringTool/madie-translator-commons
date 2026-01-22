@@ -42,12 +42,7 @@ import org.cqframework.cql.gen.cqlParser.SortClauseContext;
 import org.cqframework.cql.gen.cqlParser.WhereClauseContext;
 import org.cqframework.cql.gen.cqlParser.WithClauseContext;
 import org.cqframework.cql.gen.cqlParser.WithoutClauseContext;
-import org.hl7.elm.r1.CodeDef;
-import org.hl7.elm.r1.CodeSystemDef;
-import org.hl7.elm.r1.ExpressionDef;
-import org.hl7.elm.r1.IncludeDef;
-import org.hl7.elm.r1.ParameterDef;
-import org.hl7.elm.r1.ValueSetDef;
+import org.hl7.elm.r1.*;
 
 import gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.TranslationResource;
 import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.CQLCode;
@@ -405,6 +400,7 @@ public class Cql2ElmListener extends cqlBaseListener {
     String dataType =
         parseString(ctx.namedTypeSpecifier().referentialOrTypeNameIdentifier().getText());
 
+    resolve(identifier, getCurrentLibraryContext());
     if (getCurrentLibraryContext().resolveValueSetRef(identifier) != null) {
       Map<String, Set<String>> current = valueSetDataTypeMap.get(currentContext);
       if (current == null) {
