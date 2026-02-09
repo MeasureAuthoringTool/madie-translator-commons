@@ -404,6 +404,7 @@ public class Cql2ElmListener extends cqlBaseListener {
     String dataType =
         parseString(ctx.namedTypeSpecifier().referentialOrTypeNameIdentifier().getText());
 
+    resolve(identifier, getCurrentLibraryContext());
     if (getCurrentLibraryContext().resolveValueSetRef(identifier) != null) {
       Map<String, Set<String>> current = valueSetDataTypeMap.get(currentContext);
       if (current == null) {
