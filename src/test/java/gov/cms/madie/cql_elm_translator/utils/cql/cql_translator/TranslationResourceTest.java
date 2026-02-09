@@ -25,7 +25,7 @@ class TranslationResourceTest {
     when(mockModelInfo.getUrl()).thenReturn("http://test.org/test/model");
     when(mockModel.getModelInfo()).thenReturn(mockModelInfo);
     when(mockModelInfo.getVersion()).thenReturn("1.0.0");
-    globalCache = Map.of(new ModelIdentifier().withId("TestModel").withVersion("1.0.0"), mockModel);
+    globalCache = Map.of(new ModelIdentifier("TestModel", null, "1.0.0"), mockModel);
     mockModelManager = new ModelManager(globalCache);
   }
 

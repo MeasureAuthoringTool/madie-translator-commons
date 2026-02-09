@@ -13,19 +13,24 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
+import gov.cms.madie.cql_elm_translator.utils.TypeUtils;
+import jakarta.validation.constraints.NotNull;
+import kotlin.jvm.JvmClassMappingKt;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
+
+import org.antlr.v4.kotlinruntime.CharStreams;
+import org.antlr.v4.kotlinruntime.CommonTokenStream;
+import org.antlr.v4.kotlinruntime.ParserRuleContext;
+import org.antlr.v4.kotlinruntime.misc.Interval;
+import org.antlr.v4.kotlinruntime.tree.ParseTree;
+import org.antlr.v4.kotlinruntime.tree.ParseTreeWalker;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.model.CompiledLibrary;
 import org.cqframework.cql.cql2elm.model.ResolvedIdentifierContext;
+import org.cqframework.cql.cql2elm.preprocessor.CqlPreprocessor;
 import org.cqframework.cql.cql2elm.preprocessor.CqlPreprocessorElmCommonVisitor;
+import org.cqframework.cql.cql2elm.tracking.Trackable;
 import org.cqframework.cql.elm.IdObjectFactory;
 import org.cqframework.cql.gen.cqlBaseListener;
 import org.cqframework.cql.gen.cqlLexer;
@@ -42,12 +47,8 @@ import org.cqframework.cql.gen.cqlParser.SortClauseContext;
 import org.cqframework.cql.gen.cqlParser.WhereClauseContext;
 import org.cqframework.cql.gen.cqlParser.WithClauseContext;
 import org.cqframework.cql.gen.cqlParser.WithoutClauseContext;
-import org.hl7.elm.r1.CodeDef;
-import org.hl7.elm.r1.CodeSystemDef;
-import org.hl7.elm.r1.ExpressionDef;
-import org.hl7.elm.r1.IncludeDef;
-import org.hl7.elm.r1.ParameterDef;
-import org.hl7.elm.r1.ValueSetDef;
+
+import org.hl7.elm.r1.*;
 
 import gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.TranslationResource;
 import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.CQLCode;
@@ -160,21 +161,16 @@ public class Cql2ElmListener extends cqlBaseListener {
   public void enterCodesystemDefinition(cqlParser.CodesystemDefinitionContext ctx) {
     String identifier = parseString(ctx.identifier().getText());
 
-    library
-        .resolve(identifier)
-        .getExactMatchElement()
-        .ifPresent(
-            element -> {
-              if (element instanceof CodeSystemDef csDef) {
-                CQLCodeSystem codeSystem = new CQLCodeSystem();
-                codeSystem.setId(csDef.getId());
-                codeSystem.setOID(csDef.getId());
-                // MAT-6935 extracting the version from the url
-                codeSystem.setCodeSystemVersion(getParsedVersion(csDef.getVersion()));
+    Element exactMatchElement = library.resolve(identifier).getExactMatchElement();
+    if (exactMatchElement instanceof CodeSystemDef csDef) {
+      CQLCodeSystem codeSystem = new CQLCodeSystem();
+      codeSystem.setId(csDef.getId());
+      codeSystem.setOID(csDef.getId());
+      // MAT-6935 extracting the version from the url
+      codeSystem.setCodeSystemVersion(getParsedVersion(csDef.getVersion()));
 
-                codeSystemMap.putIfAbsent(identifier, codeSystem);
-              }
-            });
+      codeSystemMap.putIfAbsent(identifier, codeSystem);
+    }
   }
 
   private String getParsedVersion(String version) {
@@ -349,16 +345,19 @@ public class Cql2ElmListener extends cqlBaseListener {
   }
 
   private static String getFullText(ParserRuleContext context) {
-    if (context.start == null
-        || context.stop == null
-        || context.start.getStartIndex() < 0
-        || context.stop.getStopIndex() < 0) {
+    if (context.getStart() == null
+        || context.getStop() == null
+        || context.getStart().getStartIndex() < 0
+        || context.getStop().getStopIndex() < 0) {
       return context.getText();
     }
+
     return context
-        .start
+        .getStart()
         .getInputStream()
-        .getText(Interval.of(context.start.getStartIndex(), context.stop.getStopIndex()));
+        .getText(
+            Interval.Companion.of(
+                context.getStart().getStartIndex(), context.getStop().getStopIndex()));
   }
 
   @Override
@@ -463,22 +462,22 @@ public class Cql2ElmListener extends cqlBaseListener {
 
   @Override
   public void enterWhereClause(WhereClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
   }
 
   @Override
   public void exitWhereClause(WhereClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
   }
 
   @Override
   public void enterWithClause(WithClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
 
     namespace.push(ctx.aliasedQuerySource().alias().getText());
@@ -486,8 +485,8 @@ public class Cql2ElmListener extends cqlBaseListener {
 
   @Override
   public void exitWithClause(WithClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
 
     namespace.pop();
@@ -505,43 +504,43 @@ public class Cql2ElmListener extends cqlBaseListener {
 
   @Override
   public void enterLetClause(LetClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
   }
 
   @Override
   public void exitLetClause(LetClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
   }
 
   @Override
   public void enterReturnClause(ReturnClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
   }
 
   @Override
   public void exitReturnClause(ReturnClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
   }
 
   @Override
   public void enterSortClause(SortClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      pushAliasesOntoStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
   }
 
   @Override
   public void exitSortClause(SortClauseContext ctx) {
-    if (ctx.parent instanceof cqlParser.QueryContext) {
-      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.parent));
+    if (ctx.getParent() instanceof cqlParser.QueryContext) {
+      popAliasesOffStackForQueries(((cqlParser.QueryContext) ctx.getParent()));
     }
   }
 
@@ -587,10 +586,12 @@ public class Cql2ElmListener extends cqlBaseListener {
     // we've done all we need to do with the accessor,
     // so set it equal to null so it can be updated again if need be.
     libraryAccessor = null;
-
-    if (resolvedIdentifierContext.getElementOfType(IncludeDef.class).isPresent()) {
-      IncludeDef def = resolvedIdentifierContext.getElementOfType(IncludeDef.class).get();
-
+    if (resolvedIdentifierContext.getElementOfType(
+            JvmClassMappingKt.getKotlinClass(IncludeDef.class))
+        != null) {
+      IncludeDef def =
+          resolvedIdentifierContext.getElementOfType(
+              JvmClassMappingKt.getKotlinClass(IncludeDef.class));
       graph.addEdge(
           currentContext, def.getPath() + "-" + def.getVersion() + "|" + def.getLocalIdentifier());
       libraryAccessor = def;
@@ -611,8 +612,8 @@ public class Cql2ElmListener extends cqlBaseListener {
                   .aliasName(def.getLocalIdentifier())
                   .version(def.getVersion())
                   // TODO: should be taken from librarySetId
-                  .id(def.getTrackerId().toString())
-                  .setId(def.getTrackerId().toString())
+                  .id(Trackable.INSTANCE.getTrackerId(def).toString())
+                  .setId(Trackable.INSTANCE.getTrackerId(def).toString())
                   .build());
         }
       } catch (IOException e) {
@@ -620,8 +621,12 @@ public class Cql2ElmListener extends cqlBaseListener {
             "IOException while parsing child library [{}] " + e.getMessage(),
             def.getPath() + "-" + def.getVersion());
       }
-    } else if (resolvedIdentifierContext.getElementOfType(CodeDef.class).isPresent()) {
-      CodeDef codeDef = resolvedIdentifierContext.getElementOfType(CodeDef.class).get();
+    } else if (resolvedIdentifierContext.getElementOfType(
+            JvmClassMappingKt.getKotlinClass(CodeDef.class))
+        != null) {
+      CodeDef codeDef =
+          resolvedIdentifierContext.getElementOfType(
+              JvmClassMappingKt.getKotlinClass(CodeDef.class));
       codes.add(formattedIdentifier);
       CQLCodeSystem cqlCodeSystem = codeSystemMap.get(codeDef.getCodeSystem().getName());
       CQLCode declaredCode =
@@ -637,11 +642,17 @@ public class Cql2ElmListener extends cqlBaseListener {
               .build();
       declaredCodes.add(declaredCode);
       graph.addEdge(currentContext, formattedIdentifier);
-    } else if (resolvedIdentifierContext.getElementOfType(CodeSystemDef.class).isPresent()) {
+    } else if (resolvedIdentifierContext.getElementOfType(
+            JvmClassMappingKt.getKotlinClass(CodeSystemDef.class))
+        != null) {
       codesystems.add(identifier);
       graph.addEdge(currentContext, formattedIdentifier);
-    } else if (resolvedIdentifierContext.getElementOfType(ValueSetDef.class).isPresent()) {
-      ValueSetDef vsDef = resolvedIdentifierContext.getElementOfType(ValueSetDef.class).get();
+    } else if (resolvedIdentifierContext.getElementOfType(
+            JvmClassMappingKt.getKotlinClass(ValueSetDef.class))
+        != null) {
+      ValueSetDef vsDef =
+          resolvedIdentifierContext.getElementOfType(
+              JvmClassMappingKt.getKotlinClass(ValueSetDef.class));
       valuesets.add(formattedIdentifier);
       graph.addEdge(currentContext, formattedIdentifier);
 
@@ -654,17 +665,22 @@ public class Cql2ElmListener extends cqlBaseListener {
               .build();
       cqlValuesets.add(declaredValueSet);
 
-    } else if (resolvedIdentifierContext.getElementOfType(ParameterDef.class).isPresent()) {
+    } else if (resolvedIdentifierContext.getElementOfType(
+            JvmClassMappingKt.getKotlinClass(ParameterDef.class))
+        != null) {
       ParameterDef parameterDef =
-          resolvedIdentifierContext.getElementOfType(ParameterDef.class).get();
+          resolvedIdentifierContext.getElementOfType(
+              JvmClassMappingKt.getKotlinClass(ParameterDef.class));
       CQLParameter parameter =
           CQLParameter.builder()
               .parameterName(formattedIdentifier)
-              .parameterLogic(parameterDef.getResultType().toString())
+              .parameterLogic(TypeUtils.getResultTypeStr(parameterDef))
               .build();
       parameters.add(parameter);
       graph.addEdge(currentContext, formattedIdentifier);
-    } else if (resolvedIdentifierContext.getElementOfType(ExpressionDef.class).isPresent()) {
+    } else if (resolvedIdentifierContext.getElementOfType(
+            JvmClassMappingKt.getKotlinClass(ExpressionDef.class))
+        != null) {
       definitions.add(formattedIdentifier);
       graph.addEdge(currentContext, formattedIdentifier);
     } else {
@@ -687,7 +703,7 @@ public class Cql2ElmListener extends cqlBaseListener {
     String childCQLString = this.childrenLibraries.get(def.getPath() + "-" + def.getVersion());
 
     InputStream stream = new ByteArrayInputStream(childCQLString.getBytes(StandardCharsets.UTF_8));
-    cqlLexer lexer = new cqlLexer(CharStreams.fromStream(stream));
+    cqlLexer lexer = new cqlLexer(CharStreams.INSTANCE.fromStream(stream));
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     cqlParser parser = new cqlParser(tokens);
 
@@ -707,7 +723,7 @@ public class Cql2ElmListener extends cqlBaseListener {
         new TranslationResource(true); // <-- BADDDDD!!!! Defaults to fhir
 
     CqlPreprocessorElmCommonVisitor preprocessor =
-        new CqlPreprocessorElmCommonVisitor(
+        new CqlPreprocessor(
             new LibraryBuilder(translationResource.getLibraryManager(), new IdObjectFactory()),
             tokens);
     preprocessor.visit(tree);

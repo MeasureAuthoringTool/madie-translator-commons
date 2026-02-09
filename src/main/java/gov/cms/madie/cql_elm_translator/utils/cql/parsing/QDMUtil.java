@@ -27,9 +27,7 @@ public class QDMUtil {
   public static QDMContainer getQDMContainer() {
 
     QDMContainer qdmContainer = new QDMContainer();
-    ModelIdentifier modelIdentifier = new ModelIdentifier();
-    modelIdentifier.setId("QDM");
-    modelIdentifier.setVersion("5.6");
+    ModelIdentifier modelIdentifier = new ModelIdentifier("QDM", null, "5.6");
     ModelInfo modelInfo = qdmModelInfoProvider.load(modelIdentifier);
 
     Map<String, TypeInfo> nameToProfileInfoMap = new HashMap<>();

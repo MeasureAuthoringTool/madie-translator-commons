@@ -2,15 +2,14 @@ package gov.cms.madie.cql_elm_translator.utils.cql.cql_translator;
 
 import gov.cms.madie.cql_elm_translator.service.CqlLibraryService;
 import gov.cms.mat.cql.elements.UsingProperties;
+import kotlinx.io.Source;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
+import org.cqframework.cql.cql2elm.utils.SourceKt;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.springframework.cache.annotation.Cacheable;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -63,13 +62,13 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
 
   @Override
   @Cacheable("cqlLibraries")
-  public InputStream getLibrarySource(VersionedIdentifier libraryIdentifier) {
+  public Source getLibrarySource(VersionedIdentifier libraryIdentifier) {
     String usingVersion = threadLocalValue.get().getVersion(); // using FHIR version '4.0.0
     String key = createKey(libraryIdentifier.getId(), usingVersion, libraryIdentifier.getVersion());
     return processLibrary(libraryIdentifier, key);
   }
 
-  private InputStream processLibrary(VersionedIdentifier libraryIdentifier, String key) {
+  private Source processLibrary(VersionedIdentifier libraryIdentifier, String key) {
     String[] supportedLibraries =
         supportedLibrariesMap.get(threadLocalValue.get().getLibraryType().toUpperCase());
     if (Arrays.stream(supportedLibraries)
@@ -81,7 +80,7 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
     }
   }
 
-  private InputStream getInputStream(VersionedIdentifier libraryIdentifier, String key) {
+  private Source getInputStream(VersionedIdentifier libraryIdentifier, String key) {
     String cql =
         cqlLibraryService.getLibraryCql(
             libraryIdentifier.getId(),
@@ -90,16 +89,12 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
     return processCqlFromService(key, cql);
   }
 
-  private InputStream processCqlFromService(String key, String cql) {
+  private Source processCqlFromService(String key, String cql) {
     if (StringUtils.isEmpty(cql)) {
       log.debug("Did not find any cql for key : {}", key);
       return null;
     } else {
-      return getInputStream(cql);
+      return SourceKt.asSource(cql);
     }
-  }
-
-  private InputStream getInputStream(String cql) {
-    return IOUtils.toInputStream(cql, StandardCharsets.UTF_8);
   }
 }

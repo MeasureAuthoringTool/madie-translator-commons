@@ -1,15 +1,13 @@
 package gov.cms.madie.cql_elm_translator.utils.cql;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,14 +20,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.model.CompiledLibrary;
 import org.cqframework.cql.cql2elm.model.ResolvedIdentifierContext;
-import org.hl7.cql.model.DataType;
 import org.hl7.elm.r1.IncludeDef;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import gov.cms.madie.cql_elm_translator.utils.ResourceUtils;
+import gov.cms.madie.cql_elm_translator.utils.TypeUtils;
 import gov.cms.madie.cql_elm_translator.utils.cql.parsing.model.DefinitionContent;
 import org.hl7.elm.r1.Library.Statements;
 import org.hl7.elm.r1.VersionedIdentifier;
@@ -86,14 +85,10 @@ class CQLToolsTest {
     doReturn(includes).when(library).getIncludes();
 
     ExpressionDef expression1 = mock(ExpressionDef.class);
-    DataType booleanDataType = mock(DataType.class);
-    doReturn(booleanDataType).when(expression1).getResultType();
     doReturn("expression1").when(expression1).getName();
-    doReturn("System.Boolean").when(booleanDataType).toString();
 
     ExpressionDef expression2 = mock(ExpressionDef.class);
     doReturn("expression2").when(expression2).getName();
-    doReturn(null).when(expression2).getResultType();
 
     List<ExpressionDef> expressionDefs = List.of(expression1, expression2);
 
@@ -118,21 +113,29 @@ class CQLToolsTest {
 
     doReturn(sdeCompiledLib).when(compiledLibraryMap).get(anyString());
 
-    CQLTools cqlTools =
-        new CQLTools(cqlData, null, parentExpressions, cqlTranslator, compiledLibraryMap);
-    assertNotNull(cqlTools);
-    try {
-      cqlTools.generate();
-      Set<DefinitionContent> contents = cqlTools.getDefinitionContents();
-      assertNotNull(contents);
-      Map<String, String> expressionToReturnTypeMap = cqlTools.getExpressionToReturnTypeMap();
-      assertThat(expressionToReturnTypeMap, is(notNullValue()));
-      assertThat(expressionToReturnTypeMap.containsKey("expression1"), is(true));
-      assertThat(expressionToReturnTypeMap.containsKey("expression2"), is(true));
-      assertThat(expressionToReturnTypeMap.get("expression1"), is(equalTo("System.Boolean")));
-      assertThat(expressionToReturnTypeMap.get("expression2"), is(nullValue()));
-    } catch (IOException e) {
-      fail();
+    // Mock TypeUtils.getResultTypeStr() calls for our test expressions
+    try (MockedStatic<TypeUtils> typeUtilsMock = mockStatic(TypeUtils.class)) {
+      typeUtilsMock
+          .when(() -> TypeUtils.getResultTypeStr(expression1))
+          .thenReturn("System.Boolean");
+      typeUtilsMock.when(() -> TypeUtils.getResultTypeStr(expression2)).thenReturn(null);
+
+      CQLTools cqlTools =
+          new CQLTools(cqlData, null, parentExpressions, cqlTranslator, compiledLibraryMap);
+      assertNotNull(cqlTools);
+      try {
+        cqlTools.generate();
+        Set<DefinitionContent> contents = cqlTools.getDefinitionContents();
+        assertNotNull(contents);
+        Map<String, String> expressionToReturnTypeMap = cqlTools.getExpressionToReturnTypeMap();
+        assertThat(expressionToReturnTypeMap, is(notNullValue()));
+        assertThat(expressionToReturnTypeMap.containsKey("expression1"), is(true));
+        assertThat(expressionToReturnTypeMap.containsKey("expression2"), is(true));
+        assertThat(expressionToReturnTypeMap.get("expression1"), is(equalTo("System.Boolean")));
+        assertThat(expressionToReturnTypeMap.get("expression2"), is(nullValue()));
+      } catch (IOException e) {
+        fail();
+      }
     }
   }
 }

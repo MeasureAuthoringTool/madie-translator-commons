@@ -1,6 +1,5 @@
 package gov.cms.madie.cql_elm_translator.utils.cql.cql_translator;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,10 +7,10 @@ import java.util.List;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import kotlinx.io.Source;
+import lombok.Getter;
 import org.cqframework.cql.cql2elm.*;
 import org.cqframework.cql.cql2elm.CqlCompilerException.ErrorSeverity;
-import org.fhir.ucum.UcumEssenceService;
-import org.fhir.ucum.UcumException;
 import org.fhir.ucum.UcumService;
 import org.hl7.cql.model.NamespaceInfo;
 import org.hl7.elm.r1.VersionedIdentifier;
@@ -70,16 +69,13 @@ public class TranslationResource {
         }
       };
 
-  private ModelManager modelManager;
-  private LibraryManager libraryManager;
+  @Getter private final ModelManager modelManager;
+
+  @Getter private final LibraryManager libraryManager;
 
   private String modelType;
   private static final String FHIR = "FHIR";
   private static final String QDM = "QDM";
-
-  public LibraryManager getLibraryManager() {
-    return libraryManager;
-  }
 
   public TranslationResource(boolean isFhir) {
     modelManager = new ModelManager();
@@ -109,15 +105,13 @@ public class TranslationResource {
 
   public CqlTranslator buildTranslator(RequestData requestData) {
     return buildTranslator(
-        requestData.getCqlDataInputStream(), requestData.createMap(), requestData.getSourceInfo());
+        requestData.getCqlAsSource(), requestData.createMap(), requestData.getSourceInfo());
   }
 
   /*sets the options and calls cql-elm-translator using MatLibrarySourceProvider,
   which helps the translator to fetch the CQL of the included libraries from HAPI FHIR Server*/
   public CqlTranslator buildTranslator(
-      InputStream cqlStream,
-      MultivaluedMap<String, String> params,
-      VersionedIdentifier sourceInfo) {
+      Source cqlSource, MultivaluedMap<String, String> params, VersionedIdentifier sourceInfo) {
     try {
       UcumService ucumService = null;
       // MAT-7300: change signature level to overloads ONLY for QICore
@@ -134,7 +128,7 @@ public class TranslationResource {
           optionsList.addAll(PARAMS_TO_OPTIONS_MAP.get(paramKey));
         } else if (paramKey.equals("validate-units")
             && Boolean.parseBoolean(params.getFirst(paramKey))) {
-          ucumService = getUcumService();
+          libraryManager.getCqlCompilerOptions().setValidateUnits(true);
         } else if (paramKey.equals("signatures")) {
           signatureLevel = LibraryBuilder.SignatureLevel.valueOf(params.getFirst("signatures"));
         } else if (paramKey.equals("error-severity")) {
@@ -159,21 +153,15 @@ public class TranslationResource {
 
       NamespaceInfo nsInfo = null;
 
-      libraryManager.setUcumService(ucumService);
       // MAT-7300: change signature level to overloads
       if (FHIR.equalsIgnoreCase(this.modelType)) {
         libraryManager.getCqlCompilerOptions().setSignatureLevel(signatureLevel);
       }
       libraryManager.getCqlCompilerOptions().setOptions(options);
-      return CqlTranslator.fromStream(nsInfo, sourceInfo, cqlStream, libraryManager);
+      return CqlTranslator.fromSource(nsInfo, sourceInfo, cqlSource, libraryManager);
 
     } catch (Exception e) {
       throw new TranslationFailureException("Unable to read request", e);
     }
-  }
-
-  UcumService getUcumService() throws UcumException {
-    return new UcumEssenceService(
-        UcumEssenceService.class.getResourceAsStream("/ucum-essence.xml"));
   }
 }
