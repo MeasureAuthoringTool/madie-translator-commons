@@ -113,7 +113,6 @@ public class TranslationResource {
   public CqlTranslator buildTranslator(
       Source cqlSource, MultivaluedMap<String, String> params, VersionedIdentifier sourceInfo) {
     try {
-      UcumService ucumService = null;
       // MAT-7300: change signature level to overloads ONLY for QICore
       LibraryBuilder.SignatureLevel signatureLevel = LibraryBuilder.SignatureLevel.None;
       log.info("buildTranslator for: " + this.modelType);
