@@ -1,13 +1,13 @@
 package gov.cms.madie.cql_elm_translator.utils.cql.data;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import kotlinx.io.Source;
+import org.apache.commons.lang3.StringUtils;
 import org.cqframework.cql.cql2elm.CqlCompilerException;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
+import org.cqframework.cql.cql2elm.utils.SourceKt;
 import org.hl7.elm.r1.VersionedIdentifier;
 
 import lombok.Builder;
@@ -32,8 +32,8 @@ public class RequestData {
   Boolean validateUnits;
   Boolean resultTypes;
 
-  public InputStream getCqlDataInputStream() {
-    return new ByteArrayInputStream(cqlData.getBytes());
+  public Source getCqlAsSource() {
+    return StringUtils.isBlank(cqlData) ? null : SourceKt.asSource(cqlData);
   }
 
   public MultivaluedMap<String, String> createMap() {

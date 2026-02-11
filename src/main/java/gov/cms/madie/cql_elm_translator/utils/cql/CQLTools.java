@@ -6,15 +6,17 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import gov.cms.madie.cql_elm_translator.utils.TypeUtils;
 import lombok.Getter;
 
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.kotlinruntime.CharStreams;
+import org.antlr.v4.kotlinruntime.CommonTokenStream;
+import org.antlr.v4.kotlinruntime.tree.ParseTree;
+import org.antlr.v4.kotlinruntime.tree.ParseTreeWalker;
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.model.CompiledLibrary;
+import org.cqframework.cql.cql2elm.preprocessor.CqlPreprocessor;
 import org.cqframework.cql.cql2elm.preprocessor.CqlPreprocessorElmCommonVisitor;
 import org.cqframework.cql.elm.IdObjectFactory;
 import org.cqframework.cql.gen.cqlLexer;
@@ -116,7 +118,7 @@ public class CQLTools {
   public void generate() throws IOException {
     InputStream stream =
         new ByteArrayInputStream(this.parentLibraryString.getBytes(StandardCharsets.UTF_8));
-    cqlLexer lexer = new cqlLexer(CharStreams.fromStream(stream));
+    cqlLexer lexer = new cqlLexer(CharStreams.INSTANCE.fromStream(stream));
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     cqlParser parser = new cqlParser(tokens);
 
@@ -138,7 +140,7 @@ public class CQLTools {
                     .equals("QICore")); // <-- BADDDDD!!!! Defaults to fhir
 
     CqlPreprocessorElmCommonVisitor preprocessor =
-        new CqlPreprocessorElmCommonVisitor(
+        new CqlPreprocessor(
             new LibraryBuilder(translationResource.getLibraryManager(), new IdObjectFactory()),
             tokens);
 
@@ -398,8 +400,7 @@ public class CQLTools {
     this.allNamesToReturnTypeMap.put(libraryName + "-" + libraryVersion, new HashMap<>());
 
     for (ExpressionDef expression : statements.getDef()) {
-      String resultType =
-          expression.getResultType() == null ? null : expression.getResultType().toString();
+      String resultType = TypeUtils.getResultTypeStr(expression);
       this.allNamesToReturnTypeMap
           .get(libraryName + "-" + libraryVersion)
           .put(expression.getName(), resultType);
@@ -411,10 +412,10 @@ public class CQLTools {
       for (ParameterDef parameter : parameters.getDef()) {
         this.allNamesToReturnTypeMap
             .get(libraryName + "-" + libraryVersion)
-            .put(parameter.getName(), parameter.getResultType().toString());
-        this.nameToReturnTypeMap.put(parameter.getName(), parameter.getResultType().toString());
+            .put(parameter.getName(), TypeUtils.getResultTypeStr(parameter));
+        this.nameToReturnTypeMap.put(parameter.getName(), TypeUtils.getResultTypeStr(parameter));
         this.expressionToReturnTypeMap.put(
-            parameter.getName(), parameter.getResultType().toString());
+            parameter.getName(), TypeUtils.getResultTypeStr(parameter));
       }
     }
 
@@ -434,20 +435,20 @@ public class CQLTools {
         for (ExpressionDef expression : statementsFromIncludedLibrary.getDef()) {
           this.allNamesToReturnTypeMap
               .get(includedLibraryName + "-" + includedLibraryVersion)
-              .put(expression.getName(), expression.getResultType().toString());
+              .put(expression.getName(), TypeUtils.getResultTypeStr(expression));
           this.expressionToReturnTypeMap.put(
               include.getLocalIdentifier() + "." + expression.getName(),
-              expression.getResultType().toString());
+              TypeUtils.getResultTypeStr(expression));
         }
 
         if (parametersFromIncludedLibrary != null) {
           for (ParameterDef parameter : parametersFromIncludedLibrary.getDef()) {
             this.allNamesToReturnTypeMap
                 .get(includedLibraryName + "-" + includedLibraryVersion)
-                .put(parameter.getName(), parameter.getResultType().toString());
+                .put(parameter.getName(), TypeUtils.getResultTypeStr(parameter));
             this.expressionToReturnTypeMap.put(
                 include.getLocalIdentifier() + "." + parameter.getName(),
-                parameter.getResultType().toString());
+                TypeUtils.getResultTypeStr(parameter));
           }
         }
       }

@@ -72,7 +72,8 @@ public class CqlLibraryService {
                 name, version),
             null,
             name,
-            version);
+            version,
+            null);
 
       } else {
         log.error("Cannot find Cql payload in the response");
