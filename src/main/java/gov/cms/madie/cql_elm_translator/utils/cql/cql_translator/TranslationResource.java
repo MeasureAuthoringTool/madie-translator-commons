@@ -11,7 +11,6 @@ import kotlinx.io.Source;
 import lombok.Getter;
 import org.cqframework.cql.cql2elm.*;
 import org.cqframework.cql.cql2elm.CqlCompilerException.ErrorSeverity;
-import org.fhir.ucum.UcumService;
 import org.hl7.cql.model.NamespaceInfo;
 import org.hl7.elm.r1.VersionedIdentifier;
 
