@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gov.cms.madie</groupId>
 	<artifactId>madie-translator-commons</artifactId>
-	<version>3.0.2-SNAPSHOT</version>
+	<version>3.0.3-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
@@ -14,6 +14,7 @@
 		<mockito.version>5.12.0</mockito.version>
 		<slf4j.version>2.0.13</slf4j.version>
 		<cqframework.version>4.4.0</cqframework.version>
+		<hapi.fhir.version>8.8.0</hapi.fhir.version>
 		<spotify.fmt.version>2.21.1</spotify.fmt.version>
 		<lombok.version>1.18.30</lombok.version>
 		<madie.rest.commons.version>1.0.6-SNAPSHOT</madie.rest.commons.version>
@@ -103,6 +104,23 @@
             <version>${cqframework.version}</version>
         </dependency>
 
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-structures-r5</artifactId>
+			<version>${hapi.fhir.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>okhttp</artifactId>
+					<groupId>com.squareup.okhttp3</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-converter</artifactId>
+			<version>${hapi.fhir.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.cqframework</groupId>
@@ -132,12 +150,6 @@
             <artifactId>kotlin-reflect</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
-
-
-
-
-
-
 
 		<dependency>
 			<groupId>gov.cms.madie</groupId>
