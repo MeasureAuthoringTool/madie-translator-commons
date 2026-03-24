@@ -40,17 +40,7 @@ public class ImplementationGuideLoader {
     return igs;
   }
 
-  protected static ImplementationGuide parseFromResource(String resourcePath) {
-    try (InputStream inputStream =
-        ImplementationGuideLoader.class.getClassLoader().getResourceAsStream(resourcePath)) {
-      return parseFromInputStream(inputStream);
-    } catch (Exception e) {
-      throw new IllegalArgumentException(
-          "Unable to parse implementation guide: " + resourcePath, e);
-    }
-  }
-
-  private static ImplementationGuide parseFromInputStream(InputStream inputStream) {
+  protected static ImplementationGuide parseFromInputStream(InputStream inputStream) {
     Resource igResource =
         (Resource) FhirContext.forR4Cached().newJsonParser().parseResource(inputStream);
 
