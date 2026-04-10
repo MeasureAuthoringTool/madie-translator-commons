@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gov.cms.madie</groupId>
 	<artifactId>madie-translator-commons</artifactId>
-	<version>3.0.5-SNAPSHOT</version>
+	<version>3.0.6-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
@@ -70,13 +70,18 @@
 			<artifactId>jul-to-slf4j</artifactId>
 			<version>${slf4j.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.fhir</groupId>
+			<artifactId>ucum</artifactId>
+			<version>${org.fhir.ucum.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.cqframework</groupId>
 			<artifactId>cql</artifactId>
 			<version>${cqframework.version}</version>
 		</dependency>
-
-
 		<dependency>
 			<groupId>org.cqframework</groupId>
 			<artifactId>cql-to-elm</artifactId>
@@ -87,12 +92,6 @@
             <artifactId>cql-to-elm-jvm</artifactId>
             <version>${cqframework.version}</version>
         </dependency>
-
-		<dependency>
-			<groupId>org.fhir</groupId>
-			<artifactId>ucum</artifactId>
-			<version>${org.fhir.ucum.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>org.cqframework</groupId>
 			<artifactId>elm</artifactId>
@@ -103,6 +102,37 @@
             <artifactId>elm-fhir</artifactId>
             <version>${cqframework.version}</version>
         </dependency>
+		<dependency>
+			<groupId>org.cqframework</groupId>
+			<artifactId>cqf-fhir-npm</artifactId>
+			<version>${cqframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cqframework</groupId>
+			<artifactId>quick</artifactId>
+			<version>${cqframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cqframework</groupId>
+			<artifactId>qdm</artifactId>
+			<version>${cqframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cqframework</groupId>
+			<artifactId>cql-formatter</artifactId>
+			<version>${cqframework.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jetbrains.kotlin</groupId>
+			<artifactId>kotlin-stdlib</artifactId>
+			<version>${kotlin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.kotlin</groupId>
+			<artifactId>kotlin-reflect</artifactId>
+			<version>${kotlin.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
@@ -115,7 +145,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-converter</artifactId>
@@ -123,44 +152,17 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.cqframework</groupId>
-			<artifactId>quick</artifactId>
-			<version>${cqframework.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.cqframework</groupId>
-			<artifactId>qdm</artifactId>
-			<version>${cqframework.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.cqframework</groupId>
-			<artifactId>cql-formatter</artifactId>
-			<version>${cqframework.version}</version>
-		</dependency>
-
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
-            <version>${kotlin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-reflect</artifactId>
-            <version>${kotlin.version}</version>
-        </dependency>
-
-		<dependency>
 			<groupId>gov.cms.madie</groupId>
 			<artifactId>madie-rest-commons</artifactId>
 			<version>${madie.rest.commons.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
 			<version>2.1.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -262,6 +264,20 @@
 			<groupId>com.jayway.jsonpath</groupId>
 			<artifactId>json-path</artifactId>
 			<version>${com.jayway.jsonpath.version}</version>
+		</dependency>
+		<!-- Ensuring alignment of transitive dependencies needed to parse IG npm packages
+		 with hl7.fhir.utilities.npm classes -->
+		<!-- Force commons-io >= 2.18.0 to fix IllegalAccessError caused by commons-compress 1.28.0
+     calling AbstractStreamBuilder.getInputStream() which was narrowed to protected in 2.17.0 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.28.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.21.0</version>
 		</dependency>
 	</dependencies>
 	<!--    Required to fetch artifacts from repositories other than maven central -->
