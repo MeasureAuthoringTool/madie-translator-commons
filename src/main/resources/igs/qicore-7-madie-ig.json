@@ -54,7 +54,7 @@
     {
       "uri": "http://hl7.org/fhir/ImplementationGuide/qicore",
       "packageId": "hl7.fhir.us.qicore",
-      "version": "7.0.1",
+      "version": "7.0.2",
       "id": "QICore"
     },
     {
