@@ -5,7 +5,8 @@
 | translator-commons | CQL-ELM Translator      |
 |--------------------|-------------------------|
 | 1.x.y              | \>= 3.3.2 and <= 3.14.0 |
-| 2.x.y              | \>= 3.15.0              |
+| 2.x.y              | \>= 3.15.0 and < 4.0.0  |
+| 3.x.y              | \>= 4.0.0               |
 
 
 ## Publishing SNAPSHOT for madie-fhir-elm-translator
