@@ -1,0 +1,30 @@
+---
+engines:
+  # Enable coverage analysis
+  coverage:
+    enabled: true
+
+  # Configure code analysis tools
+  checkstyle:
+    enabled: true
+  spotbugs:
+    enabled: true
+  pmd:
+    enabled: true
+  duplication:
+    enabled: true
+
+# Exclude patterns - files to ignore during analysis
+exclude_paths:
+  - "src/test/java/gov/cms/madie/cql_elm_translator/StaticUtil.java"
+  - "target/**"
+  - "*.md"
+  - "*.txt"
+  - "*.xml"
+  - "*.json"
+  - "*.yml"
+  - "*.yaml"
+
+# File pattern configurations
+transformations:
+  # Java-specific transformations can be added here if needed
