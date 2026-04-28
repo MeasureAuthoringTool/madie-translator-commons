@@ -8,8 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.cqframework.cql.cql2elm.utils.SourceKt;
 import org.hl7.elm.r1.VersionedIdentifier;
-import org.springframework.cache.annotation.Cacheable;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +59,6 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
   }
 
   @Override
-  @Cacheable("cqlLibraries")
   public Source getLibrarySource(VersionedIdentifier libraryIdentifier) {
     String usingVersion = threadLocalValue.get().getVersion(); // using FHIR version '4.0.0
     String key = createKey(libraryIdentifier.getId(), usingVersion, libraryIdentifier.getVersion());

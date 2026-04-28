@@ -7,7 +7,9 @@ import gov.cms.mat.cql.elements.UsingProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cqframework.cql.cql2elm.CqlIncludeException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -27,6 +29,9 @@ public class CqlLibraryService {
 
   private final RestTemplate restTemplate;
 
+  @Autowired(required = false)
+  private CacheManager cacheManager;
+
   @Value("${madie.library.service.baseUrl}")
   private String madieLibraryService;
 
@@ -40,6 +45,15 @@ public class CqlLibraryService {
   }
 
   public String getLibraryCql(String name, String version, String accessToken) {
+    if (cacheManager != null) {
+      return cacheManager
+          .getCache("cqlLibraries")
+          .get(name + "_" + version, () -> fetchLibraryCql(name, version, accessToken));
+    }
+    return fetchLibraryCql(name, version, accessToken);
+  }
+
+  private String fetchLibraryCql(String name, String version, String accessToken) {
     URI uri = buildMadieLibraryServiceUri(name, version);
     log.debug("Getting Madie library: {} ", uri);
 
