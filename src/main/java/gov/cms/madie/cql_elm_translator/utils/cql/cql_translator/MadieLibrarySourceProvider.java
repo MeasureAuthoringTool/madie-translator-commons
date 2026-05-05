@@ -43,9 +43,11 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
         .build();
   }
 
-  @Autowired
+  @Autowired(required = false)
   public void initCqlLibraryService(CqlLibraryService cqlLibraryService) {
-    setCqlLibraryService(cqlLibraryService);
+    if (cqlLibraryService != null) {
+      setCqlLibraryService(cqlLibraryService);
+    }
   }
 
   public static void setCqlLibraryService(CqlLibraryService cqlLibraryService) {
