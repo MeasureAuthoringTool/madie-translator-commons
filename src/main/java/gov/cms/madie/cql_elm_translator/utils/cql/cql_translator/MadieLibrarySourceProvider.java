@@ -8,13 +8,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.cqframework.cql.cql2elm.utils.SourceKt;
 import org.hl7.elm.r1.VersionedIdentifier;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
+@Component
 public class MadieLibrarySourceProvider implements LibrarySourceProvider {
 
   private static final String[] STRING_ARR = new String[0];
@@ -40,6 +43,11 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
         .build();
   }
 
+  @Autowired
+  public void initCqlLibraryService(CqlLibraryService cqlLibraryService) {
+    setCqlLibraryService(cqlLibraryService);
+  }
+
   public static void setCqlLibraryService(CqlLibraryService cqlLibraryService) {
     MadieLibrarySourceProvider.cqlLibraryService = cqlLibraryService;
   }
@@ -56,15 +64,24 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
     return name + "-" + qdmVersion + "-" + version;
   }
 
+  public static String buildCacheKey(VersionedIdentifier libraryIdentifier) {
+    String usingVersion = threadLocalValue.get() == null ? "" : threadLocalValue.get().getVersion();
+    return createKey(libraryIdentifier.getId(), usingVersion, libraryIdentifier.getVersion());
+  }
+
   public static Map<String, String[]> getSupportedLibrariesMap() {
     return supportedLibrariesMap;
   }
 
   @Override
-  @Cacheable("cqlLibraries")
+  @Cacheable(
+      cacheNames = "cqlLibraries",
+      cacheManager = "madieCqlLibrariesCacheManager",
+      key =
+          "T(gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.MadieLibrarySourceProvider)"
+              + ".buildCacheKey(#libraryIdentifier)")
   public Source getLibrarySource(VersionedIdentifier libraryIdentifier) {
-    String usingVersion = threadLocalValue.get().getVersion(); // using FHIR version '4.0.0
-    String key = createKey(libraryIdentifier.getId(), usingVersion, libraryIdentifier.getVersion());
+    String key = buildCacheKey(libraryIdentifier);
     return processLibrary(libraryIdentifier, key);
   }
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import gov.cms.madie.cql_elm_translator.config.SpringContextHolder;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -147,7 +148,7 @@ public class TranslationResource {
 
       CqlCompilerOptions.Options[] options = optionsList.toArray(new CqlCompilerOptions.Options[0]);
 
-      libraryManager.getLibrarySourceLoader().registerProvider(new MadieLibrarySourceProvider());
+      libraryManager.getLibrarySourceLoader().registerProvider(resolveMadieLibrarySourceProvider());
 
       NamespaceInfo nsInfo = null;
 
@@ -160,6 +161,15 @@ public class TranslationResource {
 
     } catch (Exception e) {
       throw new TranslationFailureException("Unable to read request", e);
+    }
+  }
+
+  private MadieLibrarySourceProvider resolveMadieLibrarySourceProvider() {
+    try {
+      return SpringContextHolder.getBean(MadieLibrarySourceProvider.class);
+    } catch (IllegalStateException ex) {
+      // Fallback keeps legacy non-Spring usage intact.
+      return new MadieLibrarySourceProvider();
     }
   }
 }
