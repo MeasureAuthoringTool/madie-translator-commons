@@ -11,6 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.cache.Cache;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,6 +65,12 @@ class CqlLibraryServiceTest {
                 + cqlLibraryName
                 + "&version="
                 + cqlLibraryVersion);
+  }
+
+  private CaffeineCacheManager caffeineCacheManager() {
+    CaffeineCacheManager cacheManager = new CaffeineCacheManager("cqlLibraries");
+    cacheManager.setCaffeine(Caffeine.newBuilder());
+    return cacheManager;
   }
 
   @Test
@@ -177,6 +188,82 @@ class CqlLibraryServiceTest {
         is(
             equalTo(
                 "Multiple libraries found with name: FHIRHelpers, version: 1.0.000, but only one was expected.")));
+  }
+
+  @Test
+  void getLibraryCqlCachesOnFirstCallAndHitsOnSecond() {
+    String cql =
+        "library QICoreCommon version '1.3.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    ReflectionTestUtils.setField(cqlLibraryService, "cacheManager", caffeineCacheManager());
+    cqlLibraryService.setUpLibrarySourceProvider(cql, "ACCESS_TOKEN");
+    when(restTemplate.exchange(
+            any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(new ResponseEntity<>(cql, HttpStatus.OK));
+
+    cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+    cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+
+    verify(restTemplate, times(1)).exchange(any(URI.class), any(), any(), eq(String.class));
+  }
+
+  @Test
+  void getLibraryCqlCallsServiceAgainForDifferentVersion() {
+    String cql =
+        "library QICoreCommon version '1.3.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    ReflectionTestUtils.setField(cqlLibraryService, "cacheManager", caffeineCacheManager());
+    cqlLibraryService.setUpLibrarySourceProvider(cql, "ACCESS_TOKEN");
+    when(restTemplate.exchange(
+            any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(new ResponseEntity<>(cql, HttpStatus.OK));
+
+    cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+    cqlLibraryService.getLibraryCql(cqlLibraryName, "2.0.000", accessToken);
+
+    verify(restTemplate, times(2)).exchange(any(URI.class), any(), any(), eq(String.class));
+  }
+
+  @Test
+  void getLibraryCqlDoesNotCacheOnNotFound() {
+    ReflectionTestUtils.setField(cqlLibraryService, "cacheManager", caffeineCacheManager());
+    HttpClientErrorException notFound = mock(HttpClientErrorException.NotFound.class);
+    doThrow(notFound)
+        .when(restTemplate)
+        .exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class));
+
+    Cache.ValueRetrievalException ex1 =
+        assertThrows(
+            Cache.ValueRetrievalException.class,
+            () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+    assertInstanceOf(LibraryResourceLoaderException.class, ex1.getCause());
+
+    Cache.ValueRetrievalException ex2 =
+        assertThrows(
+            Cache.ValueRetrievalException.class,
+            () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+    assertInstanceOf(LibraryResourceLoaderException.class, ex2.getCause());
+
+    verify(restTemplate, times(2)).exchange(any(URI.class), any(), any(), eq(String.class));
+  }
+
+  @Test
+  void getLibraryCqlWithNoCacheManagerCallsServiceDirectly() {
+    String cql =
+        "library QICoreCommon version '1.3.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(cql, "ACCESS_TOKEN");
+    when(restTemplate.exchange(
+            any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(new ResponseEntity<>(cql, HttpStatus.OK));
+
+    cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+    cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+
+    verify(restTemplate, times(2)).exchange(any(URI.class), any(), any(), eq(String.class));
   }
 
   @Test
