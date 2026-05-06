@@ -25,12 +25,13 @@ class ImplementationGuideLoaderTest {
       // then
       assertThat(implementationGuide, is(notNullValue()));
       assertThat(
-          implementationGuide.getId(), is(equalTo("ImplementationGuide/cms.fhir.us.madieig")));
+          implementationGuide.getId(),
+          is(equalTo("ImplementationGuide/cms.fhir.us.madie.qicore7ig")));
       assertThat(
           implementationGuide.getUrl(),
           is(
               equalTo(
-                  "http://madie.cms.gov/fhir/us/madieig/ImplementationGuide/cms.fhir.us.madieig")));
+                  "http://madie.cms.gov/fhir/us/madieig/ImplementationGuide/cms.fhir.us.madie.qicore7ig")));
       assertThat(implementationGuide.getContactFirstRep().getName(), is(equalTo("CMS")));
     } catch (java.io.IOException e) {
       Assertions.fail("Failed to load IG from resource path: " + resourcePath, e);

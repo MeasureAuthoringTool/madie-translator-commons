@@ -1,14 +1,14 @@
 {
   "resourceType": "ImplementationGuide",
-  "id": "cms.fhir.us.madieig",
+  "id": "cms.fhir.us.madie.qicore7ig",
   "text": {
     "status": "generated",
     "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>cms.fhir.us.madieig</p></div>"
   },
-  "url": "http://madie.cms.gov/fhir/us/madieig/ImplementationGuide/cms.fhir.us.madieig",
+  "url": "http://madie.cms.gov/fhir/us/madieig/ImplementationGuide/cms.fhir.us.madie.qicore7ig",
   "version": "0.1.0",
-  "name": "cms.fhir.us.madieig",
-  "title": "MADiE IG",
+  "name": "cms.fhir.us.madie.qicore7ig",
+  "title": "MADiE IG QI-Core 7.0.2",
   "status": "draft",
   "experimental": false,
   "date": "2025-10-27",
