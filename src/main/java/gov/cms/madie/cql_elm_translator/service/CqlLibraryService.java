@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cqframework.cql.cql2elm.CqlIncludeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -46,9 +47,13 @@ public class CqlLibraryService {
 
   public String getLibraryCql(String name, String version, String accessToken) {
     if (cacheManager != null) {
-      return cacheManager
-          .getCache("cqlLibraries")
-          .get(name + "_" + version, () -> fetchLibraryCql(name, version, accessToken));
+      try {
+        return cacheManager
+            .getCache("cqlLibraries")
+            .get(name + "_" + version, () -> fetchLibraryCql(name, version, accessToken));
+      } catch (Cache.ValueRetrievalException e) {
+        throw (RuntimeException) e.getCause();
+      }
     }
     return fetchLibraryCql(name, version, accessToken);
   }

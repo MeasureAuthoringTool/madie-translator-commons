@@ -12,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.cache.Cache;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -234,17 +233,13 @@ class CqlLibraryServiceTest {
         .when(restTemplate)
         .exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class));
 
-    Cache.ValueRetrievalException ex1 =
-        assertThrows(
-            Cache.ValueRetrievalException.class,
-            () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
-    assertInstanceOf(LibraryResourceLoaderException.class, ex1.getCause());
+    assertThrows(
+        LibraryResourceLoaderException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
 
-    Cache.ValueRetrievalException ex2 =
-        assertThrows(
-            Cache.ValueRetrievalException.class,
-            () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
-    assertInstanceOf(LibraryResourceLoaderException.class, ex2.getCause());
+    assertThrows(
+        LibraryResourceLoaderException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
 
     verify(restTemplate, times(2)).exchange(any(URI.class), any(), any(), eq(String.class));
   }
