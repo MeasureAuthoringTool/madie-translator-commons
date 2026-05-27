@@ -8,15 +8,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.cqframework.cql.cql2elm.utils.SourceKt;
 import org.hl7.elm.r1.VersionedIdentifier;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 @Slf4j
 public class MadieLibrarySourceProvider implements LibrarySourceProvider {
 
   private static final String[] STRING_ARR = new String[0];
   private static final ThreadLocal<UsingProperties> threadLocalValue = new ThreadLocal<>();
+  private static final ThreadLocal<List<UsingProperties>> threadLocalAllUsings =
+      new ThreadLocal<>();
   private static final ThreadLocal<String> threadLocalValueAccessToken = new ThreadLocal<>();
   private static CqlLibraryService cqlLibraryService;
   private static final Map<String, String[]> supportedLibrariesMap =
@@ -38,12 +39,29 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
         .build();
   }
 
+  public static List<UsingProperties> getAllUsingProperties() {
+    return Optional.ofNullable(threadLocalAllUsings.get()).orElse(Collections.emptyList()).stream()
+        .map(
+            usingProperties ->
+                UsingProperties.builder()
+                    .libraryType(usingProperties.getLibraryType())
+                    .version(usingProperties.getVersion())
+                    .line(usingProperties.getLine())
+                    .comment(usingProperties.getComment())
+                    .build())
+        .toList();
+  }
+
   public static void setCqlLibraryService(CqlLibraryService cqlLibraryService) {
     MadieLibrarySourceProvider.cqlLibraryService = cqlLibraryService;
   }
 
   public static void setUsing(UsingProperties usingProperties) {
     threadLocalValue.set(usingProperties);
+  }
+
+  public static void setAllUsings(List<UsingProperties> allUsings) {
+    threadLocalAllUsings.set(allUsings);
   }
 
   public static void setAccessToken(String accessToken) {
