@@ -382,6 +382,59 @@ class CqlLibraryServiceTest {
   }
 
   @Test
+  void getLibraryCqlQICore6MeasureWithQICore4LibThrowsCqlIncludeException() {
+    String measureCql =
+        "library libraryName version '0.0.000'\n" + "using QICore version '6.0.0'\n";
+    cqlLibraryService.setUpLibrarySourceProvider(measureCql, "ACCESS_TOKEN");
+
+    String libraryCql = "library CQMCommon version '2.2.000'\n" + "using QICore version '4.1.1'\n";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(libraryCql, HttpStatus.OK));
+    assertThrows(
+        CqlIncludeException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+  }
+
+  @Test
+  void getLibraryCqlQICore6MeasureWithFHIR401LibIsOK() {
+    String measureCql =
+        "library libraryName version '0.0.000'\n" + "using QICore version '6.0.0'\n";
+    cqlLibraryService.setUpLibrarySourceProvider(measureCql, "ACCESS_TOKEN");
+
+    String fhirLibCql =
+        "library FHIRHelpers version '4.4.000'\n"
+            + "using FHIR version '4.0.1'\n"
+            + "Response Cql String";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(fhirLibCql, HttpStatus.OK));
+    String responseBody =
+        cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+    assertTrue(responseBody.contains("Response Cql String"));
+  }
+
+  @Test
+  void getLibraryCqlValidationRunsEvenOnCacheHit() {
+    String qicore411Cql =
+        "library CQMCommon version '2.2.000'\n" + "using QICore version '4.1.1'\n";
+    CaffeineCacheManager cacheManager = caffeineCacheManager();
+    cacheManager
+        .getCache("cqlLibraries")
+        .put(cqlLibraryName + "_" + cqlLibraryVersion, qicore411Cql);
+    ReflectionTestUtils.setField(cqlLibraryService, "cacheManager", cacheManager);
+
+    String measureCql =
+        "library libraryName version '0.0.000'\n" + "using QICore version '6.0.0'\n";
+    cqlLibraryService.setUpLibrarySourceProvider(measureCql, "ACCESS_TOKEN");
+
+    assertThrows(
+        CqlIncludeException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+    verify(restTemplate, never()).exchange(any(), any(), any(), eq(String.class));
+  }
+
+  @Test
   void testSetUpLibrarySourceProvider() {
     String cql = "library QICoreCommon version '1.3.000'\n" + "using QICore version '4.1.1'";
     cqlLibraryService.setUpLibrarySourceProvider(cql, "ACCESS_TOKEN");

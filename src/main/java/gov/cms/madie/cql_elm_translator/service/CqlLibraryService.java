@@ -49,6 +49,27 @@ public class CqlLibraryService {
   }
 
   public String getLibraryCql(String name, String version, String accessToken) {
+    String cql = getRawLibraryCql(name, version, accessToken);
+    if (cql != null) {
+      List<UsingProperties> allUsings =
+          new CqlTextParser(cql).getAllUsings();
+      if (!validateUsingStatements(allUsings)) {
+        log.error("Library model and version does not match the Measure model and version");
+        throw new CqlIncludeException(
+            String.format(
+                "Library model and version does not match the Measure model and version for"
+                    + " name: %s, version: %s",
+                name, version),
+            null,
+            name,
+            version,
+            null);
+      }
+    }
+    return cql;
+  }
+
+  private String getRawLibraryCql(String name, String version, String accessToken) {
     if (cacheManager != null) {
       try {
         return cacheManager
@@ -73,22 +94,7 @@ public class CqlLibraryService {
           restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
       if (responseEntity.hasBody()) {
         log.debug("Retrieved a valid cqlPayload");
-        List<UsingProperties> allUsings =
-            new CqlTextParser(responseEntity.getBody()).getAllUsings();
-        if (validateUsingStatements(allUsings)) {
-          return responseEntity.getBody();
-        }
-        log.error("Library model and version does not match the Measure model and version");
-        throw new CqlIncludeException(
-            String.format(
-                "Library model and version does not match the Measure model and version for"
-                    + " name: %s, version: %s",
-                name, version),
-            null,
-            name,
-            version,
-            null);
-
+        return responseEntity.getBody();
       } else {
         log.error("Cannot find Cql payload in the response");
         return null;
