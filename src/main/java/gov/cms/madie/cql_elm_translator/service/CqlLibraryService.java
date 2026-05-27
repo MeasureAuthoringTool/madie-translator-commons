@@ -125,20 +125,17 @@ public class CqlLibraryService {
 
     if (!measureIsFhir) {
       // Both are QDM: confirm library has a QDM using that matches the measure's QDM type
-      UsingProperties measureQdm =
-          measureAllUsings.stream()
-              .filter(u -> u != null && !fhirUtil.isFhirModel(u.getLibraryType()))
-              .findFirst()
-              .orElse(null);
-      UsingProperties libQdm =
-          libraryAllUsings.stream()
-              .filter(u -> u != null && !fhirUtil.isFhirModel(u.getLibraryType()))
-              .findFirst()
-              .orElse(null);
-      if (measureQdm == null || libQdm == null) {
+      UsingProperties measureQdm = measureAllUsings.get(0);
+      UsingProperties libraryQdm = libraryAllUsings.get(0);
+      if (measureQdm == null || libraryQdm == null) {
         return false;
       }
-      return measureQdm.getLibraryType().equalsIgnoreCase(libQdm.getLibraryType());
+
+      String measureType = measureQdm.getLibraryType();
+      String libraryType = libraryQdm.getLibraryType();
+      return measureType != null
+          && libraryType != null
+          && measureType.trim().equalsIgnoreCase(libraryType.trim());
     }
 
     // Both are FHIR-based: the library model must be an ancestor-or-equal of the measure's most
