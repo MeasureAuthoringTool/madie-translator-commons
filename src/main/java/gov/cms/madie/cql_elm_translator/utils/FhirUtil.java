@@ -101,7 +101,7 @@ public class FhirUtil {
    * @param modelVersion The model/version string from a Measure or CqlLibrary
    * @return The normalized model string (e.g., "QICORE", "FHIR", "QDM"), or null if not found
    */
-  public static String extractModelString(String modelVersion) {
+  public String extractModelString(String modelVersion) {
     if (modelVersion == null || modelVersion.isEmpty()) {
       return null;
     }
@@ -127,6 +127,61 @@ public class FhirUtil {
       }
     }
     return sb.length() > 0 ? sb.toString().toUpperCase() : null;
+  }
+
+  /**
+   * Checks that for any FHIR model name present in both lists, the versions are identical. If no
+   * model names overlap between the two lists, there are no version constraints to enforce and this
+   * returns true.
+   *
+   * <p>Examples:
+   *
+   * <ul>
+   *   <li>Measure: QICore 4.1.1 / Library: QICore 6.0.0 → false (same model, different versions)
+   *   <li>Measure: QICore 4.1.1 / Library: USCore 6.0.0 → true (no overlap)
+   *   <li>Measure: QICore 4.1.1 + FHIR 4.0.1 / Library: FHIR 4.0.1 → true (FHIR overlap, same
+   *       version)
+   * </ul>
+   *
+   * @param measureUsings all using statements from the measure CQL
+   * @param libraryUsings all using statements from the library CQL
+   * @return true if all overlapping model names share the same version
+   */
+  public boolean fhirModelVersionsAreConsistent(
+      List<UsingProperties> measureUsings, List<UsingProperties> libraryUsings) {
+    if (measureUsings == null || libraryUsings == null) {
+      return true;
+    }
+
+    // Build normalized model name -> version map from measure usings (FHIR models only)
+    Map<String, String> measureVersionByModel = new HashMap<>();
+    for (UsingProperties u : measureUsings) {
+      if (u == null) continue;
+      String type = u.getLibraryType();
+      if (type == null) continue;
+      String normalized = type.trim().toUpperCase();
+      ModelNode node = MODEL_MAP.get(normalized);
+      if (node != null && node.isOrIsDescendantOf("FHIR")) {
+        measureVersionByModel.put(normalized, u.getVersion());
+      }
+    }
+
+    // For each library using that overlaps with a measure model, versions must match
+    for (UsingProperties u : libraryUsings) {
+      if (u == null) continue;
+      String type = u.getLibraryType();
+      if (type == null) continue;
+      String normalized = type.trim().toUpperCase();
+      if (measureVersionByModel.containsKey(normalized)) {
+        String measureVersion = measureVersionByModel.get(normalized);
+        String libraryVersion = u.getVersion();
+        if (measureVersion == null || !measureVersion.equals(libraryVersion)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   /**

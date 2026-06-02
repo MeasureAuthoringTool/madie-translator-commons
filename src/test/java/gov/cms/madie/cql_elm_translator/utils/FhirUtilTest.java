@@ -252,6 +252,121 @@ class FhirUtilTest {
   }
 
   @Test
+  void fhirModelVersionsAreConsistentShouldReturnTrueWhenNoModelNameOverlap() {
+    // Measure: QICore 4.1.1 — Library: USCore 6.0.0 → no overlap → true
+    UsingProperties measureQiCore = Mockito.mock(UsingProperties.class);
+    when(measureQiCore.getLibraryType()).thenReturn("QICore");
+    when(measureQiCore.getVersion()).thenReturn("4.1.1");
+
+    UsingProperties libraryUsCore = Mockito.mock(UsingProperties.class);
+    when(libraryUsCore.getLibraryType()).thenReturn("USCore");
+    when(libraryUsCore.getVersion()).thenReturn("6.0.0");
+
+    boolean result =
+        fhirUtil.fhirModelVersionsAreConsistent(List.of(measureQiCore), List.of(libraryUsCore));
+
+    assertThat(result, is(true));
+  }
+
+  @Test
+  void fhirModelVersionsAreConsistentShouldReturnTrueWhenOverlappingModelsSameVersion() {
+    // Measure: QICore 4.1.1 — Library: QICore 4.1.1 → overlap, same version → true
+    UsingProperties measureQiCore = Mockito.mock(UsingProperties.class);
+    when(measureQiCore.getLibraryType()).thenReturn("QICore");
+    when(measureQiCore.getVersion()).thenReturn("4.1.1");
+
+    UsingProperties libraryQiCore = Mockito.mock(UsingProperties.class);
+    when(libraryQiCore.getLibraryType()).thenReturn("QICore");
+    when(libraryQiCore.getVersion()).thenReturn("4.1.1");
+
+    boolean result =
+        fhirUtil.fhirModelVersionsAreConsistent(List.of(measureQiCore), List.of(libraryQiCore));
+
+    assertThat(result, is(true));
+  }
+
+  @Test
+  void fhirModelVersionsAreConsistentShouldReturnFalseWhenOverlappingModelsHaveDifferentVersions() {
+    // Measure: QICore 4.1.1 — Library: QICore 6.0.0 → overlap, different versions → false
+    UsingProperties measureQiCore = Mockito.mock(UsingProperties.class);
+    when(measureQiCore.getLibraryType()).thenReturn("QICore");
+    when(measureQiCore.getVersion()).thenReturn("4.1.1");
+
+    UsingProperties libraryQiCore = Mockito.mock(UsingProperties.class);
+    when(libraryQiCore.getLibraryType()).thenReturn("QICore");
+    when(libraryQiCore.getVersion()).thenReturn("6.0.0");
+
+    boolean result =
+        fhirUtil.fhirModelVersionsAreConsistent(List.of(measureQiCore), List.of(libraryQiCore));
+
+    assertThat(result, is(false));
+  }
+
+  @Test
+  void fhirModelVersionsAreConsistentShouldReturnFalseForUsCoreVersionMismatch() {
+    // Measure: USCore 6.0.0 — Library: USCore 7.0.0 → false
+    UsingProperties measureUsCore = Mockito.mock(UsingProperties.class);
+    when(measureUsCore.getLibraryType()).thenReturn("USCore");
+    when(measureUsCore.getVersion()).thenReturn("6.0.0");
+
+    UsingProperties libraryUsCore = Mockito.mock(UsingProperties.class);
+    when(libraryUsCore.getLibraryType()).thenReturn("USCore");
+    when(libraryUsCore.getVersion()).thenReturn("7.0.0");
+
+    boolean result =
+        fhirUtil.fhirModelVersionsAreConsistent(List.of(measureUsCore), List.of(libraryUsCore));
+
+    assertThat(result, is(false));
+  }
+
+  @Test
+  void fhirModelVersionsAreConsistentShouldReturnTrueWhenFhirOverlapMatchesAndQiCoreDiffers() {
+    // Measure: QICore 4.1.1 + FHIR 4.0.1 — Library: FHIR 4.0.1 → FHIR overlaps with same version →
+    // true
+    UsingProperties measureQiCore = Mockito.mock(UsingProperties.class);
+    when(measureQiCore.getLibraryType()).thenReturn("QICore");
+    when(measureQiCore.getVersion()).thenReturn("4.1.1");
+
+    UsingProperties measureFhir = Mockito.mock(UsingProperties.class);
+    when(measureFhir.getLibraryType()).thenReturn("FHIR");
+    when(measureFhir.getVersion()).thenReturn("4.0.1");
+
+    UsingProperties libraryFhir = Mockito.mock(UsingProperties.class);
+    when(libraryFhir.getLibraryType()).thenReturn("FHIR");
+    when(libraryFhir.getVersion()).thenReturn("4.0.1");
+
+    boolean result =
+        fhirUtil.fhirModelVersionsAreConsistent(
+            List.of(measureQiCore, measureFhir), List.of(libraryFhir));
+
+    assertThat(result, is(true));
+  }
+
+  @Test
+  void fhirModelVersionsAreConsistentShouldReturnTrueForNullLists() {
+    assertThat(fhirUtil.fhirModelVersionsAreConsistent(null, List.of()), is(true));
+    assertThat(fhirUtil.fhirModelVersionsAreConsistent(List.of(), null), is(true));
+    assertThat(fhirUtil.fhirModelVersionsAreConsistent(null, null), is(true));
+  }
+
+  @Test
+  void fhirModelVersionsAreConsistentShouldIgnoreNonFhirModelsInMeasure() {
+    // QDM in measure using list should be ignored; library QICore has no overlap → true
+    UsingProperties measureQdm = Mockito.mock(UsingProperties.class);
+    when(measureQdm.getLibraryType()).thenReturn("QDM");
+    when(measureQdm.getVersion()).thenReturn("5.6");
+
+    UsingProperties libraryQiCore = Mockito.mock(UsingProperties.class);
+    when(libraryQiCore.getLibraryType()).thenReturn("QICore");
+    when(libraryQiCore.getVersion()).thenReturn("4.1.1");
+
+    boolean result =
+        fhirUtil.fhirModelVersionsAreConsistent(List.of(measureQdm), List.of(libraryQiCore));
+
+    assertThat(result, is(true));
+  }
+
+  @Test
   void getMostSpecificFhirModelShouldKeepFirstMostSpecificWhenLessSpecificFollowsZZZ() {
     // given
     UsingProperties qicore = Mockito.mock(UsingProperties.class);

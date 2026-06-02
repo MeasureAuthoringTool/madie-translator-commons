@@ -51,8 +51,7 @@ public class CqlLibraryService {
   public String getLibraryCql(String name, String version, String accessToken) {
     String cql = getRawLibraryCql(name, version, accessToken);
     if (cql != null) {
-      List<UsingProperties> allUsings =
-          new CqlTextParser(cql).getAllUsings();
+      List<UsingProperties> allUsings = new CqlTextParser(cql).getAllUsings();
       if (!validateUsingStatements(allUsings)) {
         log.error("Library model and version does not match the Measure model and version");
         throw new CqlIncludeException(
@@ -144,9 +143,14 @@ public class CqlLibraryService {
           && measureType.trim().equalsIgnoreCase(libraryType.trim());
     }
 
-    // Both are FHIR-based: the library model must be an ancestor-or-equal of the measure's most
-    // specific model (e.g. a QICore measure can use a USCore or FHIR library, but not
-    // USQualityCore)
+    // Both are FHIR-based: enforce that any overlapping model names share the same version
+    // (e.g. you cannot mix QICore 4.1.1 in the measure with QICore 6.0.0 in the library)
+    if (!fhirUtil.fhirModelVersionsAreConsistent(measureAllUsings, libraryAllUsings)) {
+      return false;
+    }
+
+    // The library model must be an ancestor-or-equal of the measure's most specific model
+    // (e.g. a QICore measure can use a USCore or FHIR library, but not USQualityCore)
     String measureModelName = measureMostSpecific.getLibraryType().trim().toUpperCase();
     String libModelName = libMostSpecific.getLibraryType().trim().toUpperCase();
     return fhirUtil.isMeasureCompatibleWithLibrary(measureModelName, libModelName);
