@@ -156,9 +156,13 @@ public class FhirUtil {
     // Build normalized model name -> version map from measure usings (FHIR models only)
     Map<String, String> measureVersionByModel = new HashMap<>();
     for (UsingProperties u : measureUsings) {
-      if (u == null) continue;
+      if (u == null) {
+        continue;
+      }
       String type = u.getLibraryType();
-      if (type == null) continue;
+      if (type == null) {
+        continue;
+      }
       String normalized = type.trim().toUpperCase();
       ModelNode node = MODEL_MAP.get(normalized);
       if (node != null && node.isOrIsDescendantOf("FHIR")) {
@@ -168,9 +172,13 @@ public class FhirUtil {
 
     // For each library using that overlaps with a measure model, versions must match
     for (UsingProperties u : libraryUsings) {
-      if (u == null) continue;
+      if (u == null) {
+        continue;
+      }
       String type = u.getLibraryType();
-      if (type == null) continue;
+      if (type == null) {
+        continue;
+      }
       String normalized = type.trim().toUpperCase();
       if (measureVersionByModel.containsKey(normalized)) {
         String measureVersion = measureVersionByModel.get(normalized);
