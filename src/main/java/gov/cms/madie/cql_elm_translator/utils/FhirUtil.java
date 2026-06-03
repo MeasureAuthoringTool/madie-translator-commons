@@ -1,6 +1,7 @@
 package gov.cms.madie.cql_elm_translator.utils;
 
 import gov.cms.mat.cql.elements.UsingProperties;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -154,21 +155,7 @@ public class FhirUtil {
     }
 
     // Build normalized model name -> version map from measure usings (FHIR models only)
-    Map<String, String> measureVersionByModel = new HashMap<>();
-    for (UsingProperties u : measureUsings) {
-      if (u == null) {
-        continue;
-      }
-      String type = u.getLibraryType();
-      if (type == null) {
-        continue;
-      }
-      String normalized = type.trim().toUpperCase();
-      ModelNode node = MODEL_MAP.get(normalized);
-      if (node != null && node.isOrIsDescendantOf("FHIR")) {
-        measureVersionByModel.put(normalized, u.getVersion());
-      }
-    }
+    Map<String, String> measureVersionByModel = getMeasureVersionsByModel(measureUsings);
 
     // For each library using that overlaps with a measure model, versions must match
     for (UsingProperties u : libraryUsings) {
@@ -190,6 +177,26 @@ public class FhirUtil {
     }
 
     return true;
+  }
+
+  @NotNull
+  private Map<String, String> getMeasureVersionsByModel(List<UsingProperties> measureUsings) {
+    Map<String, String> measureVersionByModel = new HashMap<>();
+    for (UsingProperties u : measureUsings) {
+      if (u == null) {
+        continue;
+      }
+      String type = u.getLibraryType();
+      if (type == null) {
+        continue;
+      }
+      String normalized = type.trim().toUpperCase();
+      ModelNode node = MODEL_MAP.get(normalized);
+      if (node != null && node.isOrIsDescendantOf("FHIR")) {
+        measureVersionByModel.put(normalized, u.getVersion());
+      }
+    }
+    return measureVersionByModel;
   }
 
   /**
