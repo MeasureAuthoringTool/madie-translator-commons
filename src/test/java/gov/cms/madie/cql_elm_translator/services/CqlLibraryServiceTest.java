@@ -1,6 +1,7 @@
 package gov.cms.madie.cql_elm_translator.services;
 
 import gov.cms.madie.cql_elm_translator.exceptions.LibraryResourceLoaderException;
+import gov.cms.madie.cql_elm_translator.utils.FhirUtil;
 import gov.cms.mat.cql.elements.UsingProperties;
 import gov.cms.madie.cql_elm_translator.service.CqlLibraryService;
 import gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.MadieLibrarySourceProvider;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -36,6 +38,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CqlLibraryServiceTest {
+
+  @Spy private FhirUtil fhirUtil;
 
   @Mock private RestTemplate restTemplate;
 
@@ -144,6 +148,123 @@ class CqlLibraryServiceTest {
         .thenReturn(new ResponseEntity<>(wrongLibrarycql, HttpStatus.OK));
     String responseBody =
         cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+    assertTrue(responseBody.contains("Response Cql String"));
+  }
+
+  @Test
+  void getLibraryCqlQdmMeasureWithFhirLibraryThrowsCqlIncludeException() {
+    // given
+    String measureCql =
+        "library QdmMeasure version '1.0.000'\n"
+            + "using QDM version '5.6'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(measureCql, "ACCESS_TOKEN");
+
+    String fhirLibraryCql =
+        "library FhirLibrary version '1.0.000'\n"
+            + "using FHIR version '4.0.1'\n"
+            + "Response Cql String";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(fhirLibraryCql, HttpStatus.OK));
+
+    // when/then
+    assertThrows(
+        CqlIncludeException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+  }
+
+  @Test
+  void getLibraryCqlFhirMeasureWithQdmLibraryThrowsCqlIncludeException() {
+    // given
+    String measureCql =
+        "library QiCoreMeasure version '1.0.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(measureCql, "ACCESS_TOKEN");
+
+    String qdmLibraryCql =
+        "library QdmLibrary version '1.0.000'\n"
+            + "using QDM version '5.6'\n"
+            + "Response Cql String";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(qdmLibraryCql, HttpStatus.OK));
+
+    // when/then
+    assertThrows(
+        CqlIncludeException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+  }
+
+  @Test
+  void getLibraryCqlQiCoreMeasureWithUsQualityCoreLibraryThrowsCqlIncludeException() {
+    // given
+    String measureCql =
+        "library QiCoreMeasure version '1.0.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(measureCql, "ACCESS_TOKEN");
+
+    String usQualityCoreLibraryCql =
+        "library UsQualityCoreLibrary version '1.0.000'\n"
+            + "using USQualityCore version '0.1.0'\n"
+            + "Response Cql String";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(usQualityCoreLibraryCql, HttpStatus.OK));
+
+    // when/then
+    assertThrows(
+        CqlIncludeException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+  }
+
+  @Test
+  void getLibraryCqlUsQualityCoreMeasureWithQiCoreLibraryThrowsCqlIncludeException() {
+    // given
+    String measureCql =
+        "library UsQualityCoreMeasure version '1.0.000'\n"
+            + "using USQualityCore version '0.1.0'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(measureCql, "ACCESS_TOKEN");
+
+    String qiCoreLibraryCql =
+        "library QiCoreLibrary version '1.0.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(qiCoreLibraryCql, HttpStatus.OK));
+
+    // when/then
+    assertThrows(
+        CqlIncludeException.class,
+        () -> cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken));
+  }
+
+  @Test
+  void getLibraryCqlUsQualityCoreMeasureWithFhirLibraryIsOk() {
+    // given
+    String measureCql =
+        "library UsQualityCoreMeasure version '1.0.000'\n"
+            + "using USQualityCore version '0.1.0'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(measureCql, "ACCESS_TOKEN");
+
+    String fhirLibraryCql =
+        "library FhirLibrary version '1.0.000'\n"
+            + "using FHIR version '4.0.1'\n"
+            + "Response Cql String";
+    when(restTemplate.exchange(
+            libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(fhirLibraryCql, HttpStatus.OK));
+
+    // when
+    String responseBody =
+        cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
+
+    // then
     assertTrue(responseBody.contains("Response Cql String"));
   }
 

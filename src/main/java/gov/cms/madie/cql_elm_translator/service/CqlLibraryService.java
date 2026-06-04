@@ -1,6 +1,7 @@
 package gov.cms.madie.cql_elm_translator.service;
 
 import gov.cms.madie.cql_elm_translator.exceptions.LibraryResourceLoaderException;
+import gov.cms.madie.cql_elm_translator.utils.FhirUtil;
 import gov.cms.madie.cql_elm_translator.utils.cql.cql_translator.MadieLibrarySourceProvider;
 import gov.cms.mat.cql.CqlTextParser;
 import gov.cms.mat.cql.elements.UsingProperties;
@@ -20,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -27,6 +29,7 @@ import java.net.URI;
 public class CqlLibraryService {
 
   private final RestTemplate restTemplate;
+  private final FhirUtil fhirUtil;
 
   @Autowired(required = false)
   private CacheManager cacheManager;
@@ -38,7 +41,9 @@ public class CqlLibraryService {
   private String librariesCqlUri;
 
   public void setUpLibrarySourceProvider(String cql, String accessToken) {
-    MadieLibrarySourceProvider.setUsing(new CqlTextParser(cql).getUsing());
+    CqlTextParser cqlTextParser = new CqlTextParser(cql);
+    MadieLibrarySourceProvider.setUsing(cqlTextParser.getUsing());
+    MadieLibrarySourceProvider.setAllUsings(cqlTextParser.getAllUsings());
     MadieLibrarySourceProvider.setCqlLibraryService(this);
     MadieLibrarySourceProvider.setAccessToken(accessToken);
   }
@@ -46,8 +51,8 @@ public class CqlLibraryService {
   public String getLibraryCql(String name, String version, String accessToken) {
     String cql = getRawLibraryCql(name, version, accessToken);
     if (cql != null) {
-      UsingProperties libraryUsing = new CqlTextParser(cql).getUsing();
-      if (!validateUsingStatements(libraryUsing)) {
+      List<UsingProperties> allUsings = new CqlTextParser(cql).getAllUsings();
+      if (!validateUsingStatements(allUsings)) {
         log.error("Library model and version does not match the Measure model and version");
         throw new CqlIncludeException(
             String.format(
@@ -108,26 +113,47 @@ public class CqlLibraryService {
     }
   }
 
-  private boolean validateUsingStatements(UsingProperties libraryUsing) {
-    String[] includeStatement = libraryUsing.getLine().split(" ");
-    String[] measureProperties =
-        MadieLibrarySourceProvider.getUsingProperties().getLine().split(" ");
-    // QICore
-    if ((measureProperties[1].equals("QICore")
-            && includeStatement[1].equals("FHIR")
-            && includeStatement[3].equals("'4.0.1'"))
-        || (includeStatement[1].equals("QICore")
-            && measureProperties[1].equals("QICore")
-            && includeStatement[3].equals(measureProperties[3]))) {
-      return true;
+  public boolean validateUsingStatements(List<UsingProperties> libraryAllUsings) {
+    List<UsingProperties> measureAllUsings = MadieLibrarySourceProvider.getAllUsingProperties();
+
+    // Determine the most specific FHIR model for the measure and library
+    UsingProperties measureMostSpecific = fhirUtil.getMostSpecificFhirModel(measureAllUsings);
+    boolean measureIsFhir = measureMostSpecific != null;
+
+    UsingProperties libMostSpecific = fhirUtil.getMostSpecificFhirModel(libraryAllUsings);
+    boolean libraryIsFhir = libMostSpecific != null;
+
+    // If one is FHIR-based and the other is QDM, they are incompatible
+    if (measureIsFhir != libraryIsFhir) {
+      return false;
     }
-    // QDM -> model & version need to match
-    if (libraryUsing
-        .getLine()
-        .equals(MadieLibrarySourceProvider.getUsingProperties().getLine().trim())) {
-      return true;
+
+    if (!measureIsFhir) {
+      // Both are QDM: confirm library has a QDM using that matches the measure's QDM type
+      UsingProperties measureQdm = measureAllUsings.get(0);
+      UsingProperties libraryQdm = libraryAllUsings.get(0);
+      if (measureQdm == null || libraryQdm == null) {
+        return false;
+      }
+
+      String measureType = measureQdm.getLibraryType();
+      String libraryType = libraryQdm.getLibraryType();
+      return measureType != null
+          && libraryType != null
+          && measureType.trim().equalsIgnoreCase(libraryType.trim());
     }
-    return false;
+
+    // Both are FHIR-based: enforce that any overlapping model names share the same version
+    // (e.g. you cannot mix QICore 4.1.1 in the measure with QICore 6.0.0 in the library)
+    if (!fhirUtil.fhirModelVersionsAreConsistent(measureAllUsings, libraryAllUsings)) {
+      return false;
+    }
+
+    // The library model must be an ancestor-or-equal of the measure's most specific model
+    // (e.g. a QICore measure can use a USCore or FHIR library, but not USQualityCore)
+    String measureModelName = measureMostSpecific.getLibraryType().trim().toUpperCase();
+    String libModelName = libMostSpecific.getLibraryType().trim().toUpperCase();
+    return fhirUtil.isMeasureCompatibleWithLibrary(measureModelName, libModelName);
   }
 
   private URI buildMadieLibraryServiceUri(String name, String version) {

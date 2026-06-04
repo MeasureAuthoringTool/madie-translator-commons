@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gov.cms.madie</groupId>
 	<artifactId>madie-translator-commons</artifactId>
-	<version>3.1.4</version>
+	<version>3.2.0</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
