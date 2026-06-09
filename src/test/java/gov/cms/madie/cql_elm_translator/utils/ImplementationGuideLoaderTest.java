@@ -14,8 +14,6 @@ import static org.hamcrest.Matchers.*;
 
 class ImplementationGuideLoaderTest {
 
-  private ImplementationGuideLoader loader;
-
   @Test
   void loadImplementationGuideShouldReturnGuideWithExpectedAttributes() {
     // given
