@@ -19,15 +19,13 @@ import java.util.List;
 @Slf4j
 public class ImplementationGuideLoader {
 
-  private static final String IG_CLASSPATH_PATTERN = "classpath*:igs/*.json";
-
-  public static List<ImplementationGuide> load() {
+  public static List<ImplementationGuide> load(String igResourcePattern) {
     List<ImplementationGuide> igs = new ArrayList<>();
     try {
       PathMatchingResourcePatternResolver resourceLoader =
           new PathMatchingResourcePatternResolver(ImplementationGuideLoader.class.getClassLoader());
       org.springframework.core.io.Resource[] resources =
-          resourceLoader.getResources(IG_CLASSPATH_PATTERN);
+          resourceLoader.getResources(igResourcePattern);
 
       for (org.springframework.core.io.Resource resource : resources) {
         String fileName = resource.getFilename();

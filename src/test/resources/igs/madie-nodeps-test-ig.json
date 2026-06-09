@@ -1,0 +1,15 @@
+{
+  "resourceType": "ImplementationGuide",
+  "id": "cms.fhir.us.nodeps.madieig",
+  "url": "http://madie.cms.gov/fhir/us/madieig/ImplementationGuide/cms.fhir.us.nodeps.madieig",
+  "version": "0.1.0",
+  "name": "cms.fhir.us.nodeps.madieig",
+  "title": "MADiE No-Deps Test IG",
+  "status": "draft",
+  "experimental": false,
+  "date": "2025-10-27",
+  "publisher": "CMS",
+  "contact": [],
+  "description": "Minimal test IG with no package dependencies for unit testing",
+  "dependsOn": []
+}
