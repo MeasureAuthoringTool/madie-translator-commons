@@ -157,7 +157,7 @@ public class CqlLibraryService {
   }
 
   private URI buildMadieLibraryServiceUri(String name, String version) {
-    return UriComponentsBuilder.fromHttpUrl(madieLibraryService + librariesCqlUri)
+    return UriComponentsBuilder.fromUriString(madieLibraryService + librariesCqlUri)
         .queryParam("name", name)
         .queryParam("version", version)
         .build()
