@@ -1,5 +1,7 @@
 package gov.cms.madie.cql_elm_translator.utils.cql.parsing.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +29,10 @@ public class CQLDefinition implements CQLExpression {
   private String parentLibrary;
   private String libraryDisplayName;
   private String libraryVersion;
+
+  @JsonProperty("function")
   private boolean isFunction;
+
   private int startLine;
   private List<CQLFunctionArgument> functionArguments;
 

@@ -272,7 +272,7 @@ class CqlLibraryServiceTest {
   void getLibraryCqlReturnsNull() {
     when(restTemplate.exchange(
             libraryUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
-        .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+        .thenReturn(new ResponseEntity<String>(HttpStatus.OK));
     String responseBody =
         cqlLibraryService.getLibraryCql(cqlLibraryName, cqlLibraryVersion, accessToken);
     assertNull(responseBody);

@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gov.cms.madie</groupId>
 	<artifactId>madie-translator-commons</artifactId>
-	<version>3.4.0</version>
+	<version>3.5.0</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
@@ -17,15 +17,15 @@
 		<hapi.fhir.version>8.10.0</hapi.fhir.version>
 		<spotify.fmt.version>2.21.1</spotify.fmt.version>
 		<lombok.version>1.18.30</lombok.version>
-		<madie.rest.commons.version>1.0.6-SNAPSHOT</madie.rest.commons.version>
+		<madie.rest.commons.version>1.1.0-SNAPSHOT</madie.rest.commons.version>
 		<hamcrest.version>3.0-rc1</hamcrest.version>
 		<jaxb.api.version>2.3.1</jaxb.api.version>
-		<spring.test.version>6.1.14</spring.test.version>
+		<spring.test.version>7.0.7</spring.test.version>
 		<checkstyle.version>3.4.0</checkstyle.version>
 		<checkstyle.file>madie-checkstyle.xml</checkstyle.file>
-		<gov.cms.madie.models.version>0.6.56-SNAPSHOT</gov.cms.madie.models.version>
+		<gov.cms.madie.models.version>0.10.0-SNAPSHOT</gov.cms.madie.models.version>
 		<com.jayway.jsonpath.version>2.9.0</com.jayway.jsonpath.version>
-		<org.springframework.boot.version>3.5.14</org.springframework.boot.version>
+		<org.springframework.boot.version>4.0.7</org.springframework.boot.version>
 		<org.fhir.ucum.version>1.0.9</org.fhir.ucum.version>
         <kotlin.version>2.2.10</kotlin.version>
 	</properties>
@@ -39,6 +39,13 @@
 	</distributionManagement>
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${org.springframework.boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 			<dependency>
 				<groupId>net.minidev</groupId>
 				<artifactId>json-smart</artifactId>
@@ -179,6 +186,11 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-restclient</artifactId>
+			<version>${org.springframework.boot.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>org.eclipse.persistence.moxy</artifactId>
 			<version>4.0.2</version>
@@ -190,12 +202,9 @@
 			<version>${org.springframework.boot.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<!--
-		https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.11.0-M2</version>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest -->

@@ -1,5 +1,6 @@
 package gov.cms.madie.cql_elm_translator.utils.cql.parsing.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,12 +40,14 @@ public class CQLCode implements CQLExpression {
 
   private String codeIdentifier;
 
+  @JsonProperty("used")
   private boolean isUsed;
 
   private boolean readOnly;
 
   private String suffix;
 
+  @JsonProperty("codeSystemVersionIncluded")
   private boolean isCodeSystemVersionIncluded;
 
   private String isValidatedWithVsac = "VALID";

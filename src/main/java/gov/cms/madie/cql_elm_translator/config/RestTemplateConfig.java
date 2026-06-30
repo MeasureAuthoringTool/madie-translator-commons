@@ -1,7 +1,7 @@
 package gov.cms.madie.cql_elm_translator.config;
 
 import gov.cms.madie.cql_elm_translator.config.logging.RequestResponseLoggingMdcInternalInterceptor;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
