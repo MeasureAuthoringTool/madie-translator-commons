@@ -252,6 +252,34 @@ class FhirUtilTest {
   }
 
   @Test
+  void getMinVersionForNpmShouldReturnDerivedUsCoreVersion() {
+    // given
+    UsingProperties usCore = Mockito.mock(UsingProperties.class);
+    when(usCore.getLibraryType()).thenReturn("USCore");
+
+    // when
+    String result = fhirUtil.getMinVersionForNpm(usCore);
+
+    // then
+    assertThat(result, is("6.1.0-derived"));
+  }
+
+  @Test
+  void getMinVersionForNpmShouldReturnNullForNullOrUnsupportedModel() {
+    // given
+    UsingProperties unsupported = Mockito.mock(UsingProperties.class);
+    when(unsupported.getLibraryType()).thenReturn("QDM");
+
+    // when
+    String nullResult = fhirUtil.getMinVersionForNpm(null);
+    String unsupportedResult = fhirUtil.getMinVersionForNpm(unsupported);
+
+    // then
+    assertThat(nullResult, is(nullValue()));
+    assertThat(unsupportedResult, is(nullValue()));
+  }
+
+  @Test
   void fhirModelVersionsAreConsistentShouldReturnTrueWhenNoModelNameOverlap() {
     // Measure: QICore 4.1.1 — Library: USCore 6.0.0 → no overlap → true
     UsingProperties measureQiCore = Mockito.mock(UsingProperties.class);
