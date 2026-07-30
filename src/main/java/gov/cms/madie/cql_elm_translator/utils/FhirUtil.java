@@ -25,7 +25,7 @@ public class FhirUtil {
     MODEL_MAP.put(QICORE.getName(), QICORE);
     MODEL_MAP.put(USQUALITYCORE.getName(), USQUALITYCORE);
 
-    MODEL_VERSION_MAP.put(USCORE.getName(), "7.0.0");
+    MODEL_VERSION_MAP.put(USCORE.getName(), "6.1.0-derived");
     MODEL_VERSION_MAP.put(QICORE.getName(), "7.0.0");
     MODEL_VERSION_MAP.put(USQUALITYCORE.getName(), "0.1.0");
   }
