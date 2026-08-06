@@ -34,6 +34,18 @@ class FhirUtilTest {
   }
 
   @Test
+  void isFhirModelShouldReturnTrueForCarin4Bb() {
+    // given
+    // no mocks needed
+
+    // when
+    boolean result = fhirUtil.isFhirModel("C4BB");
+
+    // then
+    assertThat(result, is(true));
+  }
+
+  @Test
   void isFhirModelShouldReturnFalseForUnknownModels() {
     // given
     // no mocks needed
@@ -202,6 +214,18 @@ class FhirUtilTest {
   }
 
   @Test
+  void isMeasureCompatibleWithLibraryShouldReturnTrueForCarin4BbMeasureAndUsCoreLibrary() {
+    // given
+    // no mocks needed
+
+    // when
+    boolean result = fhirUtil.isMeasureCompatibleWithLibrary("C4BB", "USCORE");
+
+    // then
+    assertThat(result, is(true));
+  }
+
+  @Test
   void isMeasureCompatibleWithLibraryShouldReturnFalseWhenLibraryIsMoreSpecificThanMeasure() {
     // given
     // no mocks needed
@@ -262,6 +286,19 @@ class FhirUtilTest {
 
     // then
     assertThat(result, is("6.1.0-derived"));
+  }
+
+  @Test
+  void getMinVersionForNpmShouldReturnCarin4BbVersion() {
+    // given
+    UsingProperties carin4Bb = Mockito.mock(UsingProperties.class);
+    when(carin4Bb.getLibraryType()).thenReturn("C4BB");
+
+    // when
+    String result = fhirUtil.getMinVersionForNpm(carin4Bb);
+
+    // then
+    assertThat(result, is("2.1.1-derived"));
   }
 
   @Test

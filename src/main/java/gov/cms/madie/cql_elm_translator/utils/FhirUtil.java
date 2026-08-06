@@ -15,6 +15,7 @@ public class FhirUtil {
   private static final ModelNode USCORE = new ModelNode("USCORE", FHIR);
   private static final ModelNode QICORE = new ModelNode("QICORE", USCORE);
   private static final ModelNode USQUALITYCORE = new ModelNode("USQUALITYCORE", USCORE);
+  private static final ModelNode CARIN_4_BB = new ModelNode("C4BB", USCORE);
   private static final Map<String, ModelNode> MODEL_MAP = new HashMap<>();
 
   private static final Map<String, String> MODEL_VERSION_MAP = new HashMap<>();
@@ -24,10 +25,12 @@ public class FhirUtil {
     MODEL_MAP.put(USCORE.getName(), USCORE);
     MODEL_MAP.put(QICORE.getName(), QICORE);
     MODEL_MAP.put(USQUALITYCORE.getName(), USQUALITYCORE);
+    MODEL_MAP.put(CARIN_4_BB.getName(), CARIN_4_BB);
 
     MODEL_VERSION_MAP.put(USCORE.getName(), "6.1.0-derived");
     MODEL_VERSION_MAP.put(QICORE.getName(), "7.0.0");
     MODEL_VERSION_MAP.put(USQUALITYCORE.getName(), "0.1.0");
+    MODEL_VERSION_MAP.put(CARIN_4_BB.getName(), "2.1.1-derived");
   }
 
   /**

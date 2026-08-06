@@ -20,11 +20,6 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
       new ThreadLocal<>();
   private static final ThreadLocal<String> threadLocalValueAccessToken = new ThreadLocal<>();
   private static CqlLibraryService cqlLibraryService;
-  private static final Map<String, String[]> supportedLibrariesMap =
-      Map.of(
-          "FHIR", List.of("FHIR").toArray(STRING_ARR),
-          "QICORE", List.of("FHIR", "QICore").toArray(STRING_ARR),
-          "QDM", List.of("QDM").toArray(STRING_ARR));
 
   public static String getAccessToken() {
     return threadLocalValueAccessToken.get();
@@ -68,45 +63,29 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
     threadLocalValueAccessToken.set(accessToken);
   }
 
-  private static String createKey(String name, String qdmVersion, String version) {
-    return name + "-" + qdmVersion + "-" + version;
-  }
-
-  public static Map<String, String[]> getSupportedLibrariesMap() {
-    return supportedLibrariesMap;
-  }
-
   @Override
   public Source getLibrarySource(VersionedIdentifier libraryIdentifier) {
-    String usingVersion = threadLocalValue.get().getVersion(); // using FHIR version '4.0.0
-    String key = createKey(libraryIdentifier.getId(), usingVersion, libraryIdentifier.getVersion());
-    return processLibrary(libraryIdentifier, key);
+    // removed processLibrary as it no longer serves a purpose. The CqlLibraryService already
+    // validates using statements
+    // in the library against threadLocal using statements.
+    return getInputStream(libraryIdentifier);
   }
 
-  private Source processLibrary(VersionedIdentifier libraryIdentifier, String key) {
-    String[] supportedLibraries =
-        supportedLibrariesMap.get(threadLocalValue.get().getLibraryType().toUpperCase());
-    if (Arrays.stream(supportedLibraries)
-        .anyMatch(threadLocalValue.get().getLibraryType()::contains)) {
-      return getInputStream(libraryIdentifier, key);
-    } else {
-      throw new IllegalArgumentException(
-          String.format("%s is not supported.", threadLocalValue.get().getLibraryType()));
-    }
-  }
-
-  private Source getInputStream(VersionedIdentifier libraryIdentifier, String key) {
+  private Source getInputStream(VersionedIdentifier libraryIdentifier) {
     String cql =
         cqlLibraryService.getLibraryCql(
             libraryIdentifier.getId(),
             libraryIdentifier.getVersion(),
             threadLocalValueAccessToken.get());
-    return processCqlFromService(key, cql);
+    return processCqlFromService(libraryIdentifier, cql);
   }
 
-  private Source processCqlFromService(String key, String cql) {
+  private Source processCqlFromService(VersionedIdentifier libraryIdentifier, String cql) {
     if (StringUtils.isEmpty(cql)) {
-      log.debug("Did not find any cql for key : {}", key);
+      log.debug(
+          "Did not find any cql for library id: {}, version: {}",
+          libraryIdentifier.getId(),
+          libraryIdentifier.getVersion());
       return null;
     } else {
       return SourceKt.asSource(cql);
