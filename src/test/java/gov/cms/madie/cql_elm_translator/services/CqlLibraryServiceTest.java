@@ -92,6 +92,32 @@ class CqlLibraryServiceTest {
   }
 
   @Test
+  void getLibraryCqlWithNamespaceCanonicalAddsQueryParam() throws Exception {
+    String namespaceCanonical = "http://hl7.org/fhir/us/qicore";
+    URI namespacedUri =
+        new URI(
+            "https://localhost:9090/api/cql-libraries/cql?name="
+                + cqlLibraryName
+                + "&version="
+                + cqlLibraryVersion
+                + "&namespaceCanonical=http%3A%2F%2Fhl7.org%2Ffhir%2Fus%2Fqicore");
+    String cql =
+        "library QICoreCommon version '1.3.000'\n"
+            + "using QICore version '4.1.1'\n"
+            + "Response Cql String";
+    cqlLibraryService.setUpLibrarySourceProvider(cql, "ACCESS_TOKEN");
+    when(restTemplate.exchange(
+            namespacedUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class))
+        .thenReturn(new ResponseEntity<>(cql, HttpStatus.OK));
+
+    String responseBody =
+        cqlLibraryService.getLibraryCql(
+            cqlLibraryName, cqlLibraryVersion, namespaceCanonical, accessToken);
+
+    assertTrue(responseBody.contains("Response Cql String"));
+  }
+
+  @Test
   void getLibraryCqlWrongModelThrowCqlIncludeException() {
     String cql =
         "library QICoreCommon version '1.3.000'\n"
@@ -422,7 +448,7 @@ class CqlLibraryServiceTest {
     CaffeineCacheManager cacheManager = caffeineCacheManager();
     cacheManager
         .getCache("cqlLibraries")
-        .put(cqlLibraryName + "_" + cqlLibraryVersion, qicore411Cql);
+        .put(cqlLibraryName + "_" + cqlLibraryVersion + "_", qicore411Cql);
     ReflectionTestUtils.setField(cqlLibraryService, "cacheManager", cacheManager);
 
     String measureCql =
