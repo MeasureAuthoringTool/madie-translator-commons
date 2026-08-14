@@ -7,7 +7,10 @@ import gov.cms.mat.cql.CqlTextParser;
 import gov.cms.mat.cql.elements.UsingProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.cqframework.cql.cql2elm.CqlIncludeException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
@@ -22,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -49,7 +53,12 @@ public class CqlLibraryService {
   }
 
   public String getLibraryCql(String name, String version, String accessToken) {
-    String cql = getRawLibraryCql(name, version, accessToken);
+    return getLibraryCql(name, version, null, accessToken);
+  }
+
+  public String getLibraryCql(
+      String name, String version, String namespaceCanonical, String accessToken) {
+    String cql = getRawLibraryCql(name, version, namespaceCanonical, accessToken);
     if (cql != null) {
       List<UsingProperties> allUsings = new CqlTextParser(cql).getAllUsings();
       if (!validateUsingStatements(allUsings)) {
@@ -68,21 +77,25 @@ public class CqlLibraryService {
     return cql;
   }
 
-  private String getRawLibraryCql(String name, String version, String accessToken) {
+  private String getRawLibraryCql(
+      String name, String version, String namespaceCanonical, String accessToken) {
+    String cacheKey =
+        name + "_" + version + "_" + Objects.toString(namespaceCanonical, StringUtils.EMPTY);
     if (cacheManager != null) {
       try {
         return cacheManager
             .getCache("cqlLibraries")
-            .get(name + "_" + version, () -> fetchLibraryCql(name, version, accessToken));
+            .get(cacheKey, () -> fetchLibraryCql(name, version, namespaceCanonical, accessToken));
       } catch (Cache.ValueRetrievalException e) {
         throw (RuntimeException) e.getCause();
       }
     }
-    return fetchLibraryCql(name, version, accessToken);
+    return fetchLibraryCql(name, version, namespaceCanonical, accessToken);
   }
 
-  private String fetchLibraryCql(String name, String version, String accessToken) {
-    URI uri = buildMadieLibraryServiceUri(name, version);
+  private String fetchLibraryCql(
+      String name, String version, String namespaceCanonical, String accessToken) {
+    URI uri = buildMadieLibraryServiceUri(name, version, namespaceCanonical);
     log.debug("Getting Madie library: {} ", uri);
 
     HttpHeaders headers = new HttpHeaders();
@@ -156,12 +169,18 @@ public class CqlLibraryService {
     return fhirUtil.isMeasureCompatibleWithLibrary(measureModelName, libModelName);
   }
 
-  private URI buildMadieLibraryServiceUri(String name, String version) {
-    return UriComponentsBuilder.fromUriString(madieLibraryService + librariesCqlUri)
-        .queryParam("name", name)
-        .queryParam("version", version)
-        .build()
-        .encode()
-        .toUri();
+  private URI buildMadieLibraryServiceUri(String name, String version, String namespaceCanonical) {
+    UriComponentsBuilder uriComponentsBuilder =
+        UriComponentsBuilder.fromUriString(madieLibraryService + librariesCqlUri)
+            .queryParam("name", name)
+            .queryParam("version", version);
+
+    if (StringUtils.isNotBlank(namespaceCanonical)) {
+      String encodedCanonical =
+          URLEncoder.encode(namespaceCanonical, StandardCharsets.UTF_8).replace("+", "%20");
+      uriComponentsBuilder.queryParam("namespaceCanonical", encodedCanonical);
+    }
+
+    return uriComponentsBuilder.build(true).toUri();
   }
 }
