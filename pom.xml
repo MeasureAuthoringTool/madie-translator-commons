@@ -56,6 +56,13 @@
 				<artifactId>ucum</artifactId>
 				<version>${org.fhir.ucum.version}</version>
 			</dependency>
+			<!-- Force commons-beanutils >= 1.9.4 to fix CVE-2014-0114 (unsuppressed class property
+			 allows ClassLoader manipulation), pulled in transitively via org.cqframework:quick -->
+			<dependency>
+				<groupId>commons-beanutils</groupId>
+				<artifactId>commons-beanutils</artifactId>
+				<version>1.11.0</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
