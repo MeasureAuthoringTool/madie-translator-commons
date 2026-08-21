@@ -76,6 +76,7 @@ public class MadieLibrarySourceProvider implements LibrarySourceProvider {
         cqlLibraryService.getLibraryCql(
             libraryIdentifier.getId(),
             libraryIdentifier.getVersion(),
+            libraryIdentifier.getSystem(),
             threadLocalValueAccessToken.get());
     return processCqlFromService(libraryIdentifier, cql);
   }
