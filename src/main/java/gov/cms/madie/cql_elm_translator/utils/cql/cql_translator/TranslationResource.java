@@ -104,13 +104,19 @@ public class TranslationResource {
 
   public CqlTranslator buildTranslator(RequestData requestData) {
     return buildTranslator(
-        requestData.getCqlAsSource(), requestData.createMap(), requestData.getSourceInfo());
+        requestData.getCqlAsSource(),
+        requestData.getNsInfo(),
+        requestData.createMap(),
+        requestData.getSourceInfo());
   }
 
   /*sets the options and calls cql-elm-translator using MatLibrarySourceProvider,
   which helps the translator to fetch the CQL of the included libraries from HAPI FHIR Server*/
   public CqlTranslator buildTranslator(
-      Source cqlSource, MultivaluedMap<String, String> params, VersionedIdentifier sourceInfo) {
+      Source cqlSource,
+      NamespaceInfo nsInfo,
+      MultivaluedMap<String, String> params,
+      VersionedIdentifier sourceInfo) {
     try {
       // MAT-7300: change signature level to overloads ONLY for QICore
       LibraryBuilder.SignatureLevel signatureLevel = LibraryBuilder.SignatureLevel.None;
@@ -148,8 +154,6 @@ public class TranslationResource {
       CqlCompilerOptions.Options[] options = optionsList.toArray(new CqlCompilerOptions.Options[0]);
 
       libraryManager.getLibrarySourceLoader().registerProvider(new MadieLibrarySourceProvider());
-
-      NamespaceInfo nsInfo = null;
 
       // MAT-7300: change signature level to overloads
       if (FHIR.equalsIgnoreCase(this.modelType)) {
