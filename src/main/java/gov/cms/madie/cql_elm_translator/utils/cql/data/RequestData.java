@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cqframework.cql.cql2elm.CqlCompilerException;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.utils.SourceKt;
+import org.hl7.cql.model.NamespaceInfo;
 import org.hl7.elm.r1.VersionedIdentifier;
 
 import lombok.Builder;
@@ -31,6 +32,7 @@ public class RequestData {
   Boolean disableMethodInvocation;
   Boolean validateUnits;
   Boolean resultTypes;
+  @Getter NamespaceInfo nsInfo;
 
   public Source getCqlAsSource() {
     return StringUtils.isBlank(cqlData) ? null : SourceKt.asSource(cqlData);
