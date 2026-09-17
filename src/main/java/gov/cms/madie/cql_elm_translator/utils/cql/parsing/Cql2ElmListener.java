@@ -356,8 +356,7 @@ public class Cql2ElmListener extends cqlBaseListener {
         .getStart()
         .getInputStream()
         .getText(
-            Interval.Companion.of(
-                context.getStart().getStartIndex(), context.getStop().getStopIndex()));
+            new Interval(context.getStart().getStartIndex(), context.getStop().getStopIndex()));
   }
 
   @Override
