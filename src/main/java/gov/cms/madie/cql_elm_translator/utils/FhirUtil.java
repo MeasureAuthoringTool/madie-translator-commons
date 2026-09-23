@@ -28,7 +28,7 @@ public class FhirUtil {
     MODEL_MAP.put(C4BB.getName(), C4BB);
 
     MODEL_VERSION_MAP.put(USCORE.getName(), "6.1.0-derived");
-    MODEL_VERSION_MAP.put(QICORE.getName(), "7.0.0");
+    MODEL_VERSION_MAP.put(QICORE.getName(), "6.0.0");
     MODEL_VERSION_MAP.put(USQUALITYCORE.getName(), "0.1.0");
     MODEL_VERSION_MAP.put(C4BB.getName(), "2.1.1-derived");
   }

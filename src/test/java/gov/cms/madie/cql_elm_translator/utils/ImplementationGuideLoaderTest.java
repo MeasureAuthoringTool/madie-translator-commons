@@ -17,7 +17,7 @@ class ImplementationGuideLoaderTest {
   @Test
   void loadImplementationGuideShouldReturnGuideWithExpectedAttributes() {
     // given
-    String resourcePath = "igs/qicore-7-madie-ig.json";
+    String resourcePath = "igs/qicore-6-madie-ig.json";
     try (InputStream inputStream =
         ImplementationGuideLoader.class.getClassLoader().getResourceAsStream(resourcePath)) {
 
@@ -29,12 +29,12 @@ class ImplementationGuideLoaderTest {
       assertThat(implementationGuide, is(notNullValue()));
       assertThat(
           implementationGuide.getId(),
-          is(equalTo("ImplementationGuide/cms.fhir.us.madie.qicore7ig")));
+          is(equalTo("ImplementationGuide/cms.fhir.us.madie.qicore6ig")));
       assertThat(
           implementationGuide.getUrl(),
           is(
               equalTo(
-                  "http://madie.cms.gov/fhir/us/madieig/ImplementationGuide/cms.fhir.us.madie.qicore7ig")));
+                  "http://madie.cms.gov/fhir/us/madieig/ImplementationGuide/cms.fhir.us.madie.qicore6ig")));
       assertThat(implementationGuide.getContactFirstRep().getName(), is(equalTo("CMS")));
     } catch (java.io.IOException e) {
       Assertions.fail("Failed to load IG from resource path: " + resourcePath, e);
@@ -44,7 +44,7 @@ class ImplementationGuideLoaderTest {
   @Test
   void loadImplementationGuideShouldIncludeDependencies() {
     // given
-    String resourcePath = "igs/qicore-7-madie-ig.json";
+    String resourcePath = "igs/qicore-6-madie-ig.json";
     try (InputStream inputStream =
         ImplementationGuideLoader.class.getClassLoader().getResourceAsStream(resourcePath)) {
 
